@@ -1,0 +1,56 @@
+{
+  "name": "@d3ts/us-map",
+  "version": "0.1.0",
+  "description": "Composable tooling for d3-based US Maps.",
+  "keywords": [
+    "d3",
+    "d3ts",
+    "maps",
+    "catography",
+    "usa"
+  ],
+  "homepage": "https://github.com/bratter/us-map#readme",
+  "bugs": "https://github.com/bratter/us-map/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Brendan Ratter"
+  },
+  "files": [
+    "dist/**/*.js"
+  ],
+  "main": "dist/d3ts-us-map.js",
+  "min": "dist/d3ts-us-map.min.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bratter/us-map.git"
+  },
+  "scripts": {
+    "build": "rm -rf ./dist && rollup -c",
+    "test": "jest --watch",
+    "test:once": "jest && eslint ./src"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^8.0.1",
+    "@types/jest": "^26.0.0",
+    "@types/node": "^14.0.12",
+    "@typescript-eslint/eslint-plugin": "^3.2.0",
+    "@typescript-eslint/parser": "^3.2.0",
+    "@wessberg/rollup-plugin-ts": "^1.2.24",
+    "eslint": "^7.2.0",
+    "eslint-plugin-jest": "^23.13.2",
+    "jest": "^26.0.1",
+    "rollup": "^2.15.0",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "rollup-plugin-terser": "^6.1.0",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.5"
+  }
+}
