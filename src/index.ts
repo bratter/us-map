@@ -1,1 +1,4 @@
-console.log('@d3ts/us-map');
+export {
+  projection as usMapProjection,
+  Projection as UsMapProjection,
+} from './projection';

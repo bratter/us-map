@@ -1,0 +1,55 @@
+import { geoConicEqualArea, geoEquirectangular } from 'd3-geo';
+import { Inset } from './types';
+
+export const insetData: Inset[] = [
+  {
+    id: 'AK',
+    name: 'Alaska',
+    type: 'state',
+    fips: ['02'],
+    projection: geoConicEqualArea().rotate([154, 0]).center([-2, 58.5]).parallels([55, 65]),
+    translate: [-0.337, 0.214],
+    extent: [[-0.4655, 0.123], [-0.239, 0.262]],
+    scale: 0.35,
+  },
+  {
+    id: 'HI',
+    name: 'Hawaii',
+    type: 'state',
+    fips: ['15'],
+    projection: geoConicEqualArea().rotate([157, 0]).center([-3, 19.9]).parallels([8, 18]),
+    translate: [-0.225, 0.227],
+    extent: [[-0.239, 0.169], [-0.127, 0.262]],
+    scale: 1,
+  },
+  {
+    id: 'PR-VI',
+    name: 'Puerto Rico and US Virgin Islands',
+    type: 'insular area',
+    fips: ['72', '78'],
+    projection: geoConicEqualArea().rotate([66, 0]).center([0, 18]).parallels([8, 18]),
+    translate: [0.350, 0.239],
+    extent: [[0.310, 0.214], [0.385, 0.262]],
+    scale: 1,
+  },
+  {
+    id: 'AS',
+    name: 'American Samoa',
+    type: 'insular area',
+    fips: ['60'],
+    projection: geoEquirectangular().rotate([173, 14]),
+    translate: [-0.475, 0.098],
+    extent: [[-0.4655, 0.083], [-0.390, 0.123]],
+    scale: 1,
+  },
+  {
+    id: 'GU-MP',
+    name: 'Guam and Northern Mariana Islands',
+    type: 'insular area',
+    fips: ['66', '69'],
+    projection: geoEquirectangular().rotate([-145, -16.8]),
+    translate: [-0.433, 0.011],
+    extent: [[-0.4655, -0.037], [-0.390, 0.083]],
+    scale: 1,
+  },
+];
