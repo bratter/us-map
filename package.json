@@ -29,7 +29,8 @@
   "scripts": {
     "build": "rm -rf ./dist && rollup -c",
     "test": "jest --watch",
-    "test:once": "jest && eslint ./src"
+    "test:once": "jest && eslint ./src",
+    "prepublishOnly": "yarn build && yarn test:once"
   },
   "jest": {
     "transform": {
