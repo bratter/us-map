@@ -60,6 +60,9 @@ export default [
         tsconfig: cfg => ({ ...cfg, declaration: true, declarationMap: true }),
       }),
       sourceMaps(),
+      terser({
+        output: { preamble:config.output.banner },
+      }),
     ],
   },
 ];

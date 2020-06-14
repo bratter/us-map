@@ -18,8 +18,7 @@
   "files": [
     "dist/**/*.js"
   ],
-  "main": "dist/d3ts-us-map.js",
-  "min": "dist/d3ts-us-map.min.js",
+  "main": "dist/d3ts-us-map.min.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {

@@ -5,7 +5,16 @@ Composable tooling for d3-based US maps.
 
 ## Installing
 
-*TODO*
+You can install via NPM `npm install --save @d3ts/us-map` or Yarn `yarn add @d3ts/us-map`.
+
+Alternatively, both UMD and ES6 module flavors are available when required, e.g. for loading directly in the browser. To load the latest UMD release from unpkg for example:
+
+```html
+<script src="https://unpkg.com/@d3ts/us-map"></script>
+<script>
+  const projection = d3ts.usMapProjection();
+</script>
+```
 
 ## API Reference
 

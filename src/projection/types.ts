@@ -48,6 +48,7 @@ export interface Inset {
   name: string;
   type: string;
   fips: string[];
+  codes: string[];
   projection: GeoProjection;
   translate: Point;
   extent: [Point, Point];
