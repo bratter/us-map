@@ -2,21 +2,22 @@ import { GeoStream, geoAlbers} from 'd3-geo';
 import { Point, PointStream, Projection, Inset } from './types';
 import { getInsetStates, makeInsets, SCALE, VIEWBOX, EPSILON } from './util';
 import { multiplex } from './mulitplex';
-import { insetData } from './insets-data';
+import { insetData, insetFips } from './insets-data';
 
 /**
  * Create a customized Albers' (US-centered) equal area conic projection.
  * 
  * This constructor builds a projection with the continental US centered on a 1024×576
- * viewport (16:9 aspect ratio).By default it only includes the lower-48 states, but by passing
- * an array of 2-digit State FIPS codes (as strings) the projection can be cusotmized to include
- * appropriately scaled and positioned insets for all States and Insular Areas. Any array of FIPS
- * codes can be provided, but only those containing `'02'`, `'15'`, and any valid code greater
- * than or equal to `'60'` will modify the projection.
+ * viewport (16:9 aspect ratio). By default it will include all insets (states & insular areas),
+ * but by passing an empty array `[]` or an array of 2-digit State FIPS codes (as strings) the
+ * projection can be cusotmized to include only the lower 48 states or any available combination
+ * of appropriately scaled and positioned insets for all States and Insular Areas. Any array of
+ * FIPS codes can be provided, but only those containing `'02'`, `'15'`, and any valid code
+ * greater than or equal to `'60'` will modify the projection.
  * 
  * @param stateIdList Array of 2-digit string State FIPS codes
  */
-export function projection(stateIdList: string[] = []): Projection {
+export function projection(stateIdList: string[] = insetFips): Projection {
   const insets: Inset[] = makeInsets(insetData, getInsetStates(stateIdList)),
     lower48 = geoAlbers(),
     pointStream = { point: function(x, y) { point = [x, y]; } } as GeoStream,

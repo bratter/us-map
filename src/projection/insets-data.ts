@@ -1,6 +1,10 @@
 import { geoConicEqualArea, geoEquirectangular } from 'd3-geo';
 import { Inset } from './types';
 
+/** Full list of inset FIPS codes */
+export const insetFips = ['02', '15', '72', '78', '66', '69', '60'];
+
+/** Collated boundary, projection, and meta data for projection insets */
 export const insetData: Inset[] = [
   {
     id: '02',
