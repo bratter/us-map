@@ -1,19 +1,17 @@
-import { Selection } from 'd3-selection';
 import { GeoPermissibleObjects } from 'd3-geo';
+import { GeoSelection, Size } from './types';
 import { projection as proj, Projection } from '../projection';
 import { VIEWBOX } from '../projection/util';
 import { scopes } from './scopes';
 
-type GeoSelection<Element extends SVGElement, GeoDatum extends GeoPermissibleObjects>
-  = Selection<Element, GeoDatum, any, any>;
-
-interface Size {
-  width: number|null;
-  height: number|null;
-}
-
 /**
  * usMap container function.
+ * 
+ * Call with a selection of svg elements to turn them into containers for the pre-projected usMap.
+ * Also includes a copy of the projection to enable projecting other points onto the map or
+ * inverting interactions with it.
+ * 
+ * @param selection The selection of svg elements being called
  */
 export interface UsMap {
   <GeoDatum extends GeoPermissibleObjects>(selection: GeoSelection<SVGSVGElement, GeoDatum>): GeoSelection<SVGGElement, GeoDatum>;
@@ -45,6 +43,10 @@ export interface UsMap {
 
 /**
  * Factory function for creating a container for a US Maps.
+ * 
+ * This factory function returns a renderer that turns a selection of svg elements into containers
+ * for the pre-projected usMap. Also includes a copy of the projection to enable projecting other
+ * points onto the map or inverting interactions with it.
  * 
  * @param scope Array of string FIPS codes to for inset inclusion
  */

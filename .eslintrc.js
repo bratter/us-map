@@ -13,4 +13,8 @@ module.exports = {
   ignorePatterns: [
     '.eslintrc.js',
   ],
+  rules: {
+    // Allow explicit any to make selection generics easier to manage
+    '@typescript-eslint/no-explicit-any': 0,
+  },
 }

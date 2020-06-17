@@ -1,1 +1,3 @@
-export { usMap } from './us-map';
+export * from './us-map';
+export * from './feature';
+ 

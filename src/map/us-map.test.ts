@@ -9,7 +9,7 @@ describe('usMap', () => {
     map = usMap();
   });
 
-  describe('usMap factory function', () => {
+  describe('usMap() factory function', () => {
     it('should return a function', () => {
       expect(typeof usMap()).toEqual('function');
     });
@@ -23,13 +23,7 @@ describe('usMap', () => {
     });
   });
 
-  describe('projection() method', () => {
-    it('should return a usMapProjection', () => {
-      expect(map.projection()([ -87.6298,  41.8781])).toEqual(projection()([ -87.6298,  41.8781]));
-    });
-  });
-
-  describe('usMap() function', () => {
+  describe('usMap() inner function', () => {
     let svg: Selection<SVGSVGElement, any, any, any>;
 
     beforeEach(() => {
@@ -61,6 +55,12 @@ describe('usMap', () => {
       map.size({ width: 200, height: 100 })(svg);
       expect(+svg.attr('width')).toEqual(200);
       expect(+svg.attr('height')).toEqual(100);
+    });
+  });
+
+  describe('projection() method', () => {
+    it('should return a usMapProjection', () => {
+      expect(map.projection()([ -87.6298,  41.8781])).toEqual(projection()([ -87.6298,  41.8781]));
     });
   });
 
