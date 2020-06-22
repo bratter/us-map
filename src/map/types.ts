@@ -4,7 +4,7 @@ import { GeoPermissibleObjects } from 'd3-geo';
 export type AccessorFunction = (d?: any, i?: number) => any;
 
 export type GeoSelection<Element extends SVGElement, GeoDatum extends GeoPermissibleObjects>
-  = Selection<Element, GeoDatum, any, any>;
+  = Selection<Element, GeoDatum[], any, any>;
 
 export interface Size {
   width: number|null;

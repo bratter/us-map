@@ -1,3 +1,4 @@
+export * from './util';
 export * from './map';
 export {
   projection as usMapProjection,

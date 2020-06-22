@@ -21,7 +21,7 @@ describe('feature', () => {
     });
   });
 
-  describe('feature() inner function', () => {
+  describe('feature() render function', () => {
     let g: Selection<SVGGElement, any, any, any>;
 
     beforeEach(() => {
@@ -87,6 +87,16 @@ describe('feature', () => {
 
       expect(wrappers.size()).toEqual(2);
       expect(wrappers.selectAll('path.feature').size()).toEqual(10);
+    });
+  });
+
+  describe('type() method', () => {
+    it('should return feature by default', () => {
+      expect(f.type()).toEqual('feature');
+    });
+
+    it('should return the value passed in the factory function', () => {
+      expect(feature('test').type()).toEqual('test');
     });
   });
 

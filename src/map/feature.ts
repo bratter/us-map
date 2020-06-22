@@ -1,6 +1,7 @@
+import { Selection } from 'd3-selection';
 import { GeoPermissibleObjects, geoPath } from 'd3-geo';
 import { scaleOrdinal } from 'd3-scale';
-import { AccessorFunction, GeoSelection, MinimalScale } from './types';
+import { AccessorFunction, MinimalScale } from './types';
 
 /**
  * UsMap feature function.
@@ -18,7 +19,10 @@ import { AccessorFunction, GeoSelection, MinimalScale } from './types';
  * @param selection The selection of svg g elements being called
  */
 export interface Feature {
-  <GeoDatum extends GeoPermissibleObjects>(selection: GeoSelection<SVGGElement, GeoDatum>): GeoSelection<SVGGElement, GeoDatum>;
+  <GeoDatum extends GeoPermissibleObjects>(selection: Selection<SVGGElement, GeoDatum[], any, any>): Selection<SVGGElement, GeoDatum[], any, any>;
+
+  /** Return the type of the features. Useful for selectors. */
+  type(): string;
 
   /**
    * Get or set the current fill data accessor. The return value will be passed to the color scale for mapping.
@@ -90,7 +94,7 @@ export interface Feature {
  */
 export function feature(type = 'feature'): Feature {
   // Using unprojected path only, feature can only be used for pre-projected GeoJSON
-  const path = geoPath();
+  const path = geoPath<any, any>();
 
   let fill: AccessorFunction = d => d?.id;
   let fillColor: MinimalScale = scaleOrdinal(['#e5e5e5']);
@@ -98,9 +102,9 @@ export function feature(type = 'feature'): Feature {
   let strokeColor: MinimalScale = scaleOrdinal(['#ffffff']);
   let width = 1;
 
-  function feature(selection: GeoSelection<SVGGElement, any>) {
+  function feature<GeoDatum>(selection: Selection<SVGGElement, GeoDatum[], any, any>): Selection<SVGGElement, GeoDatum[], any, any> {
     const wrapper = selection
-      .selectAll<SVGGElement, any>(`g.${type}Wrapper`)
+      .selectAll<SVGGElement, GeoPermissibleObjects[]>(`g.${type}Wrapper`)
       // Double array if data is falsy means this does not error even if there is no bound data
       .data(d => d ? [d] : [[]])
       .join(enter => enter.append('g').classed(`${type}Wrapper`, true))
@@ -122,6 +126,7 @@ export function feature(type = 'feature'): Feature {
     return wrapper;
   }
 
+  feature.type = () => type;
   feature.fill = function (_?) { return _ === undefined ? fill : (fill = _, this) };
   feature.fillColor = function (_?) {
     return _ === undefined
