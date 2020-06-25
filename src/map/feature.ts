@@ -107,12 +107,15 @@ export function feature(type = 'feature'): Feature {
       .selectAll<SVGGElement, GeoPermissibleObjects[]>(`g.${type}Wrapper`)
       // Double array if data is falsy means this does not error even if there is no bound data
       .data(d => d ? [d] : [[]])
-      .join(enter => enter.append('g').classed(`${type}Wrapper`, true))
-      .attr('stroke-width', width)
-      .attr('stroke-linejoin', 'round')
-      // Pointer-events="visible" means that unfilled paths will still capture events
-      // as long as the element is not hidden
-      .attr('pointer-events', 'visible');
+      .join(enter => enter
+        .append('g')
+        .classed(`${type}Wrapper`, true)
+        .attr('stroke-linejoin', 'round')
+        // Pointer-events="visible" means that unfilled paths will still capture events
+        // as long as the element is not hidden
+        .attr('pointer-events', 'visible')
+      )
+      .attr('stroke-width', width);
     
     wrapper
       .selectAll(`path.${type}`)

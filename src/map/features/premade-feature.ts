@@ -4,6 +4,13 @@ import { PremadeFeature, PropsSelection, UsAtlasObjects } from './types';
 import { feature } from '../feature';
 import { mergeFeatureProps } from '../../util';
 
+/** Map object names to feature type values */
+const typeMap = new Map([
+  ['nation', 'nation'],
+  ['states', 'state'],
+  ['counties', 'county'],
+]);
+
 /**
  * Make a feature render function based on the object key.
  * 
@@ -17,19 +24,20 @@ import { mergeFeatureProps } from '../../util';
  * 3. Post-select the paths, then join on id using `g.selectAll('path').data(data, d => d.id)`.
  *    This is NOT recommended as it replaces that original data and requires care in merging.
  * 
- * @param type The type of feature to make
+ * @param object The type of feature to make
  * 
  * TODO: Move data join method descriptions into the docs and out of here
  */
- function makePremadeFeature(
-  type: 'nation'|'states'|'counties',
+function makePremadeFeature(
+  object: 'nation'|'states'|'counties',
 ): (topology: Topology<UsAtlasObjects>) => PremadeFeature {
   return function premade(topology: Topology<UsAtlasObjects>): PremadeFeature {
-    if (!topology?.objects?.[type])
-      throw new TypeError(`The passed topology must have a ${type} object.`);
+    if (!topology?.objects?.[object])
+      throw new TypeError(`The passed topology must have a ${object} object.`);
 
     // Array of GeoJSON features to be merged into by each datum in the selection
-    const geoJson = topoFeature(topology, topology.objects[type]).features;
+    const geoJson = topoFeature(topology, topology.objects[object]).features;
+    const type = typeMap.get(object);
     const f = feature(type);
 
     function premade(selection: PropsSelection) {
@@ -40,7 +48,7 @@ import { mergeFeatureProps } from '../../util';
         .data(d => [mergeFeatureProps(geoJson, d)], (d, i) => d.id ?? i)
         .join(enter => enter.append('g').classed(`${type}Merge`, true));
 
-        // Return the result of the of the feature call to stay consistent
+      // Return the result of the of the feature call to stay consistent
       return f(merge);
     }
 

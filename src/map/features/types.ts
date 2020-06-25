@@ -8,7 +8,7 @@ import { Feature } from '../feature';
  */
 export type PropsSelection<Props extends Properties = Properties> = Selection<
   SVGGElement,
-  Map<string | number, Props>,
+  Map<string | number, Props>|undefined,
   any,
   any
 >;
@@ -54,9 +54,11 @@ export interface UsAtlasObjects<
   N extends Properties = Record<string, unknown>,
   S extends Properties = Record<string, unknown>,
   C extends Properties = Record<string, unknown>,
+  O extends Properties = Record<string, unknown>,
 > {
-  nation: GeometryCollection<NationProperties & N>,
+  nation?: GeometryCollection<NationProperties & N>,
   states?: GeometryCollection<StateProperties & S>,
   counties?: GeometryCollection<CountyProperties & C>,
+  outlines?: GeometryCollection<O>,
   [key: string]: any,
 }

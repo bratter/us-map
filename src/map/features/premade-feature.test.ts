@@ -1,14 +1,21 @@
 import { Selection, select } from 'd3-selection';
-import { nation } from './premade-feature';
+import { nation, states, counties } from './premade-feature';
 import { Topology } from 'topojson-specification';
 import { PremadeFeature, UsAtlasObjects } from './types';
 import { mergeTopoProps } from '../../util';
 
 const topo: Topology<UsAtlasObjects> = {
   type: 'Topology',
-  objects: { nation: { type: 'GeometryCollection' , geometries: [
-    { type: 'LineString', id: 'US', properties: { name: 'USA' }, arcs: [0] },
-  ] } },
+  objects: { 
+    nation: { type: 'GeometryCollection' , geometries: [
+      { type: 'LineString', id: 'US', properties: { name: 'USA' }, arcs: [0] },
+    ] },
+    states: { type: 'GeometryCollection' , geometries: [
+      { type: 'LineString', id: 'US', properties: { name: '', code: '', abbrev: '', type: '' }, arcs: [0] },
+    ] },
+    counties: { type: 'GeometryCollection' , geometries: [
+      { type: 'LineString', id: 'US', properties: { name: '', state: '' }, arcs: [0] },
+    ] } },
   arcs: [[[0, 1]]],
 };
 
@@ -80,6 +87,48 @@ describe('premade feature', () => {
 
       expect(parents.size()).toEqual(2);
       expect(wrappers.size()).toEqual(2);
+    });
+  });
+
+  describe('states() regression test', () => {
+    afterEach(() => {
+      document.body.innerHTML = '';
+    });
+
+    it('should throw an error if the topology does not contain a states key', () => {
+      const topology: any = { type: 'Topology', objects: {}, arcs: [] };
+      expect(() => states(topology)).toThrow(TypeError);
+    });
+
+    it('should create the appropriate groups and paths', () => {
+      const s = states(topo);
+      const g = select<HTMLElement, undefined>(document.body).append('svg').append('g');
+      s(g);
+
+      expect(g.selectAll('g.stateMerge').size()).toEqual(1);
+      expect(g.selectAll('g.stateWrapper').size()).toEqual(1);
+      expect(g.selectAll('path.state').size()).toEqual(1);
+    });
+  });
+
+  describe('counties() regression test', () => {
+    afterEach(() => {
+      document.body.innerHTML = '';
+    });
+
+    it('should throw an error if the topology does not contain a counties key', () => {
+      const topology: any = { type: 'Topology', objects: {}, arcs: [] };
+      expect(() => counties(topology)).toThrow(TypeError);
+    });
+
+    it('should create the appropriate groups and paths', () => {
+      const c = counties(topo);
+      const g = select<HTMLElement, undefined>(document.body).append('svg').append('g');
+      c(g);
+
+      expect(g.selectAll('g.countyMerge').size()).toEqual(1);
+      expect(g.selectAll('g.countyWrapper').size()).toEqual(1);
+      expect(g.selectAll('path.county').size()).toEqual(1);
     });
   });
 });
