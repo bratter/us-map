@@ -1,7 +1,9 @@
 # d3ts-us-map
 Composable tooling for d3-based US maps.
 
-*TODO*
+The current realse versio ncontains a custom projection with the ability to selectively include the non-contiguous states and territories of the US.
+
+The goal is to add more festures to replicate those drafted in this [Observable notebook](https://observablehq.com/@bratter/us-map).
 
 ## Installing
 

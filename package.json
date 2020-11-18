@@ -16,7 +16,7 @@
     "name": "Brendan Ratter"
   },
   "files": [
-    "dist/**/*.js"
+    "dist/**/*.*"
   ],
   "main": "dist/d3ts-us-map.min.js",
   "module": "dist/index.js",
