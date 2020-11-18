@@ -1,6 +1,6 @@
 {
   "name": "@d3ts/us-map",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Composable tooling for d3-based US Maps.",
   "keywords": [
     "d3",
@@ -16,7 +16,7 @@
     "name": "Brendan Ratter"
   },
   "files": [
-    "dist/**/*.js"
+    "dist/**/*.*"
   ],
   "main": "dist/d3ts-us-map.min.js",
   "module": "dist/index.js",
@@ -37,7 +37,7 @@
     }
   },
   "dependencies": {
-    "d3-geo": "^1.12.1",
+    "d3-geo": "^2.0.1",
     "d3-scale": "^3.2.1",
     "d3-selection": "^1.4.1",
     "d3-zoom": "^1.8.3",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^8.0.1",
-    "@types/d3-geo": "^1.11.1",
+    "@types/d3-geo": "^2.0.0",
     "@types/d3-scale": "^2.2.0",
     "@types/d3-selection": "^1.4.1",
     "@types/d3-zoom": "^1.7.4",
