@@ -1,8 +1,7 @@
 import { GeoPermissibleObjects } from 'd3-geo';
 import { GeoSelection, Size } from './types';
-import { projection as proj, Projection } from '../projection';
+import { projection as proj, scopes, Projection } from '../projection';
 import { VIEWBOX } from '../projection/util';
-import { scopes } from './scopes';
 
 /**
  * usMap container function.
@@ -50,7 +49,7 @@ export interface UsMap {
  * 
  * @param scope Array of string FIPS codes to for inset inclusion
  */
-export function usMap(scope: string[] = scopes.all): UsMap {
+export function usMap(scope: string[] = scopes.all()): UsMap {
   const projection = proj(scope);
   const size: Size = { width: null, height: null };
 
