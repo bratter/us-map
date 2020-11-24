@@ -27,6 +27,8 @@ const typeMap = new Map([
  * @param object The type of feature to make
  * 
  * TODO: Move data join method descriptions into the docs and out of here
+ * TODO: Consider taking a scope parameter to the inner function to filter objects,
+ *       but should also clip the nation feature
  */
 function makePremadeFeature(
   object: 'nation'|'states'|'counties',

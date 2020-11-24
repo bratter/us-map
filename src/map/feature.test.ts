@@ -4,6 +4,7 @@ import { Selection, select } from 'd3-selection';
 import { scaleQuantile, scaleOrdinal } from 'd3-scale';
 import { geoPath } from 'd3-geo';
 import { feature, Feature } from './feature';
+import { projection } from '../projection';
 
 // Load the outlines converted to GeoJSON as some simple data to test
 const outlines = JSON.parse(readFileSync(resolve(__dirname, '..', '..', 'test', 'outlines.json')).toString('utf-8')).features;
@@ -60,10 +61,21 @@ describe('feature', () => {
       expect(f(g).selectAll('path').size()).toEqual(5);
     });
 
-    it('should set the path d attr', () => {
+    it('should set the path d attr with no transform when no projection is passed to the feature', () => {
       const data = outlines[0];
-      const dAttr = g.datum<any>([data]).call(f).select('path.feature').attr('d');
+      const dAttr = g.datum([data]).call(f).select('path.feature').attr('d');
       expect(dAttr).toEqual(geoPath()(data));
+    });
+
+    // eslint-disable-next-line jest/expect-expect
+    it('should set the path d attr to a projected path when a projection is passed to the feature cnstructor', () => {
+      const proj = projection();
+      const f = feature(undefined, proj);
+
+      const data = outlines[0];
+      const dAttr = g.datum([data]).call(f).select('path.feature').attr('d');
+
+      expect(dAttr).toEqual(geoPath(proj)(data));
     });
 
     it('should set the stroke and fill on the path to enable coloring', () => {

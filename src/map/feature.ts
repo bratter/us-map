@@ -2,6 +2,7 @@ import { Selection } from 'd3-selection';
 import { GeoPermissibleObjects, geoPath } from 'd3-geo';
 import { scaleOrdinal } from 'd3-scale';
 import { AccessorFunction, MinimalScale } from './types';
+import { Projection } from '../projection';
 
 /**
  * UsMap feature function.
@@ -92,9 +93,9 @@ export interface Feature {
  * 
  * @param type The type of feature to be used in the class name
  */
-export function feature(type = 'feature'): Feature {
-  // Using unprojected path only, feature can only be used for pre-projected GeoJSON
-  const path = geoPath<any, any>();
+export function feature(type = 'feature', projection?: Projection): Feature {
+  // Using unprojected path only, feature can only be ,used for pre-projected GeoJSON
+  const path = geoPath<any, any>(projection);
 
   let fill: AccessorFunction = d => d?.id;
   let fillColor: MinimalScale = scaleOrdinal(['#e5e5e5']);
