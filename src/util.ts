@@ -106,3 +106,51 @@ export function mergeTopoProps<O extends Objects = Objects>(
     },
   };
 }
+
+/**
+ * Wrapped version of `Object.assign()` that always returns the `target` object from methods.
+ * Takes an optional `keys` array. If provided, only keys present in the array will be transferred.
+ * 
+ * TODO: Consider pulling these out into a package
+ */
+export const fluentAssign = makeMethodWrapper(fluentWrapper);
+
+/**
+ * Wrapped version of `Object.assign()` that returns the `target` from methods if and only if the
+ * original method returned `source`. This is useful to wrap d3-style getter/setter functions
+ * without relying on inconsistent application of `this`. Takes an optional `keys` array. If
+ * provided, only keys present in the array will be transferred.
+ */
+export const conditionalFluentAssign = makeMethodWrapper(conditionalFluentWrapper);
+
+function makeMethodWrapper(wrapper: any) {
+  return function (target: any, source: any, keys?: string[]) {
+    const assignKeys = keys ?? Object.keys(source);
+    const wrappedSource = {};
+
+    for (const k of assignKeys) {
+      if (!source[k])
+        continue;
+      
+      wrappedSource[k] = typeof source[k] === 'function'
+        ? wrapper(target, source, source[k])
+        : source[k];
+    }
+
+    return Object.assign(target, wrappedSource);
+  };
+}
+
+function conditionalFluentWrapper(target: any, source: any, method: any) {
+  return (...args) => {
+    const result = method(...args);
+    return result === source ? target : result;
+  };
+}
+
+function fluentWrapper(target: any, source: any, method: any) {
+  return (...args) => {
+    method(...args);
+    return target;
+  };
+}

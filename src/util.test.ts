@@ -1,4 +1,10 @@
-import { mergeFeatureProps, mergeTopoProps, GeometryCollectionNonNull } from './util';
+import {
+  mergeFeatureProps,
+  mergeTopoProps,
+  GeometryCollectionNonNull,
+  fluentAssign,
+  conditionalFluentAssign,
+} from './util';
 import { Topology } from 'topojson-specification';
 
 const geoJSONFeatures: GeoJSON.Feature<GeoJSON.Geometry, { prop1: number }>[] = [
@@ -73,5 +79,123 @@ describe('mergeTopoProps() function', () => {
 
     expect(props[0].prop1).toEqual(42);
     expect(props[1].prop1).toEqual(2);
+  });
+});
+
+describe('the fluentAssign() function', () => {
+  it('should not alter keys in the target that do not overlap, but overwrite those that do', () => {
+    const target = { a: 42, c: () => 3 };
+    const source = { a: () => 1, b: () => 2 };
+    const result = fluentAssign(target, source);
+
+    expect(result.a()).toBe(target);
+    expect(result.c()).toEqual(3);
+  });
+
+  it('should assign members from source to target as-is if members are not functions', () => {
+    const target = {};
+    const source = { a: 1, b: {} };
+    const result = fluentAssign(target, source);
+
+    expect(result.a).toEqual(1);
+    expect(result.b).toEqual({});
+  });
+
+  it('should assign members from source to target and return target if they are functions', () => {
+    const target = {};
+    const source = { a: () => 1, b: () => 2 };
+    const result = fluentAssign(target, source);
+
+    expect(result.a()).toBe(target);
+    expect(result.b()).toBe(target);
+  });
+
+  it('should execute the method from the underlying object, passing all arguments', () => {
+    const target = {};
+    const source = { a: jest.fn() };
+    const result = fluentAssign(target, source);
+
+    expect(result.a(1, 2, 3)).toEqual(target);
+    expect(source.a).toHaveBeenCalledTimes(1);
+    expect(source.a).toHaveBeenCalledWith(1, 2, 3);
+  });
+
+  it('should only assign methods listed in the keys array if one is provided', () => {
+    const target = {};
+    const source = { a: 1, b: 2 };
+    const result = fluentAssign(target, source, ['a']);
+
+    expect(result.a).toEqual(1);
+    expect(result.b).toBeUndefined();
+  });
+
+  it('should skip missing keys in the keys array', () => {
+    const target = {};
+    const source = { a: 1, b: 2 };
+    const result = fluentAssign(target, source, ['a', 'c']);
+
+    expect(result.a).toEqual(1);
+    expect(result.c).toBeUndefined();
+  });
+});
+
+describe('conditionalFluentAssign() function', () => {
+  it('should not alter keys in the target that do not overlap, but overwrite those that do', () => {
+    const target = { a: 42, c: () => 3 };
+    const source = { a: () => 1, b: () => 2 };
+    const result = conditionalFluentAssign(target, source);
+
+    expect(result.a()).toEqual(1);
+    expect(result.c()).toEqual(3);
+  });
+
+  it('should assign members from source to target as-is if members are not functions', () => {
+    const target = {};
+    const source = { a: 1, b: {} };
+    const result = conditionalFluentAssign(target, source);
+
+    expect(result.a).toEqual(1);
+    expect(result.b).toEqual({});
+  });
+
+  it('should assign members from source to target and return target when the method returns source, but the actual return value otherwise', () => {
+    const target = { x: 1 };
+    const source = {};
+    Object.assign(source, {
+      a: (_) => (_ === undefined ? 1 : source),
+    });
+    const result = conditionalFluentAssign(target, source);
+
+    expect(result.a()).toEqual(1);
+    expect(result.a(42)).toBe(target);
+  });
+
+  it('should execute the method from the underlying object, passing all arguments', () => {
+    const target = {};
+    const source = {} as any;
+    Object.assign(source, { a: jest.fn().mockReturnValue(source) });
+    const result = conditionalFluentAssign(target, source);
+
+    expect(result.a(1, 2, 3)).toEqual(target);
+    expect(source.a).toHaveBeenCalledTimes(1);
+    expect(source.a).toHaveBeenCalledWith(1, 2, 3);
+  });
+
+  it('should only assign methods listed in the keys array if one is provided', () => {
+    const target = {};
+    const source = { a: 1, b: 2 };
+    const result = conditionalFluentAssign(target, source, ['a']);
+
+    expect(result.a).toEqual(1);
+    expect(result.b).toBeUndefined();
+  });
+
+  it('should skip missing keys in the keys array', () => {
+    const target = {};
+    const source = { a: 1, b: 2 };
+    const result = conditionalFluentAssign(target, source, ['a', 'c']);
+
+    expect(result.a).toEqual(1);
+    expect(result.c).toBeUndefined();
   });
 });

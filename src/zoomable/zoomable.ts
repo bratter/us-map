@@ -1,5 +1,14 @@
+import { ZoomBehavior, zoom } from 'd3-zoom';
 import { UsMap } from '../map';
 import { GeoSelection } from '../map/types';
+import { VIEWBOX } from '../projection/util';
+import { conditionalFluentAssign } from '../util';
+
+const ZOOM_DEFAULTS = {
+  duration: 250,
+  extent: [[0, 0], VIEWBOX] as any,
+  scaleExtent: [1, 10] as any,
+};
 
 /**
  * Zoomable addition to a UsMap container function.
@@ -9,7 +18,27 @@ import { GeoSelection } from '../map/types';
  * If not provided (or the same name provided multiple times) subsequent calls will replace pre-
  * existing zoom handlers.
  */
-export interface Zoomable extends UsMap {
+export interface Zoomable
+  extends UsMap,
+    Pick<
+      ZoomBehavior<any, any>,
+      | 'transform'
+      | 'translateBy'
+      | 'translateTo'
+      | 'scaleBy'
+      | 'scaleTo'
+      | 'constrain'
+      | 'filter'
+      | 'touchable'
+      | 'wheelDelta'
+      | 'extent'
+      | 'scaleExtent'
+      | 'translateExtent'
+      | 'clickDistance'
+      | 'duration'
+      | 'interpolate'
+      | 'on'
+    > {
   /**
    * Sets whether the zooms applied to the same selection should by synced or run separately.
    * 
@@ -24,11 +53,18 @@ export interface Zoomable extends UsMap {
 export function zoomable(map: UsMap): Zoomable {
   let sync = true;
 
+  const zoomBehavior = zoom()
+    .duration(ZOOM_DEFAULTS.duration)
+    .extent(ZOOM_DEFAULTS.extent)
+    .translateExtent(ZOOM_DEFAULTS.extent)
+    .scaleExtent(ZOOM_DEFAULTS.scaleExtent);
+
   function zoomable(selection: GeoSelection<SVGSVGElement, any>) {
-    return selection;
+    return map(selection);
   }
 
   zoomable.sync = function (_?) { return _ === undefined ? sync : (sync = _, this) };
 
-  return Object.assign(zoomable, map);
+  conditionalFluentAssign(zoomable, zoomBehavior);
+  return Object.assign(zoomable, map) as any;
 }
