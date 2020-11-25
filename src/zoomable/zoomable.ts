@@ -1,4 +1,4 @@
-import * as d3  from 'd3-selection';
+import { select }  from 'd3-selection';
 import { ZoomBehavior, zoom } from 'd3-zoom';
 import { UsMap } from '../map';
 import { GeoSelection } from '../map/types';
@@ -58,7 +58,7 @@ export interface Zoomable
 } 
 
 export function zoomable(map: UsMap): Zoomable {
-  let sync = true;
+  let sync = false;
 
   const zoomBehaviorAdded = Symbol('zoomBehaviorAdded');
   const zoomBehavior = zoom()
@@ -82,7 +82,7 @@ export function zoomable(map: UsMap): Zoomable {
     // them on each call
     selection.each(function () {
       if (!this[zoomBehaviorAdded]) {
-        d3.select(this)
+        select(this)
           .call(zoomBehavior)
           .call(addPointerUnderlay);
         this[zoomBehaviorAdded] = true;
@@ -99,29 +99,28 @@ export function zoomable(map: UsMap): Zoomable {
     });
   }
 
-  zoomable.sync = function (_?) { return _ === undefined ? sync : (sync = _, zoomable) };
+  zoomable.sync = (_?: boolean) =>
+    _ === undefined ? sync : (sync = _, zoomable);
 
   conditionalFluentAssign(zoomable, zoomBehavior);
   return Object.assign(zoomable, map) as any;
 }
 
-function unsyncedZoomHandler() {
-  d3.select(this)
+function unsyncedZoomHandler({transform}) {
+  select(this)
     .select('g.usMap')
-    .attr('transform', d3.event.transform);
+    .attr('transform', transform);
 }
 
 function syncZoomHandler(selection: GeoSelection<any, any>) {
-  return function syncZoomHandler() {
-    const {transform} = d3.event;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const el = this;
-
+  return function syncZoomHandler({transform}) {
     // Applying the transofrm to all usMap groups defines which elements are zoomed
     selection.selectAll('g.usMap').attr('transform', transform);
-
+    
     // Manually adjusting the zoom transform is required to avoid jumping on the next event
     // The this.__zoom "escape hatch" is required to avoid infinite looping
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const el = this;
     selection.each(function () {
       if (this !== el)
         this.__zoom = transform;

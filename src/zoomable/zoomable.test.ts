@@ -1,4 +1,4 @@
-import { Selection, select, event } from 'd3-selection';
+import { Selection, select } from 'd3-selection';
 import { usMap } from '../map';
 import { zoomable, Zoomable } from './zoomable';
 
@@ -42,7 +42,7 @@ describe('The zoomable() mixin', () => {
     };
 
     expect(zoom.duration()).toEqual(defaults.duration);
-    expect(zoom.extent()(null, null, null)).toEqual(defaults.extent);
+    expect((zoom.extent() as any)(null, null, null)).toEqual(defaults.extent);
     expect(zoom.translateExtent()).toEqual(defaults.extent);
     expect(zoom.scaleExtent()).toEqual(defaults.scaleExtent);
   });
@@ -63,7 +63,7 @@ describe('The zoomable() mixin', () => {
       sel.call(zoom).call(zoom);
 
       expect.assertions(2);
-      zoom.on('zoom.test', function () {
+      zoom.on('zoom.test', function (event) {
         expect(event.type).toEqual('zoom');
       });
       zoom.translateBy(sel, 1, 1);
@@ -127,11 +127,26 @@ describe('The zoomable() mixin', () => {
   });
   
   describe('can zoom in a synchoronized or unsynchronized manner', () => {
-    it('should have a sync standard getter/setter that defaults to true', () => {
-      expect(zoom.sync()).toEqual(true);
-      expect(zoom.sync(false)).toEqual(zoom);
+    it('should have a sync standard getter/setter that defaults to false', () => {
       expect(zoom.sync()).toEqual(false);
+      expect(zoom.sync(true)).toEqual(zoom);
+      expect(zoom.sync()).toEqual(true);
     });
+
+    it('should set the transform only on the triggered element when in unsynced mode', () => {
+      const sel: any = select(document.body)
+        .selectAll('svg')
+        .data([null, null])
+        .join('svg')
+        .call(zoom.sync(false));
+      
+      zoom.translateBy(select(sel.nodes()[0]), 1, 1);
+
+      const [g1Transform, g2Transform]: any[] = sel.selectAll('g').nodes().map(n => select(n).attr('transform'));
+      expect(g1Transform).toMatch(/translate.*scale/);
+      expect(g2Transform).toBeNull();
+    });
+  });
 
     it('should set the transform on all elements in the selection when in sync mode', () => {
       // The mapGroup closure is necessary to define what will be syned
@@ -149,19 +164,4 @@ describe('The zoomable() mixin', () => {
       expect(g1Transform).toMatch(/translate.*scale/);
       expect(g2Transform).toMatch(/translate.*scale/);
     });
-
-    it('should set the transform only on the triggered element when in unsynced mode', () => {
-      const sel: any = select(document.body)
-        .selectAll('svg')
-        .data([null, null])
-        .join('svg')
-        .call(zoom.sync(false));
-      
-      zoom.translateBy(select(sel.nodes()[0]), 1, 1);
-
-      const [g1Transform, g2Transform]: any[] = sel.selectAll('g').nodes().map(n => select(n).attr('transform'));
-      expect(g1Transform).toMatch(/translate.*scale/);
-      expect(g2Transform).toBeNull();
-    });
-  });
 });
