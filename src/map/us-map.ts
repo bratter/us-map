@@ -1,6 +1,6 @@
 import { GeoPermissibleObjects } from 'd3-geo';
 import { GeoSelection, Size } from './types';
-import { projection as proj, scopes, Projection } from '../projection';
+import { usMapProjection as proj, scopes, UsMapProjection } from '../projection';
 import { VIEWBOX } from '../projection/util';
 
 /**
@@ -18,7 +18,7 @@ export interface UsMap {
   /**
    * Returns the usMapProjection for this instance. Should be considered readonly.
    */
-  projection(): Projection;
+  projection(): UsMapProjection;
 
   /**
    * Returns the bottom-right corner of the map's viewbox as `[x, y]`,

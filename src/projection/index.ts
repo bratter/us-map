@@ -1,3 +1,3 @@
-export { Projection } from './types';
-export { projection } from './projection';
+export { UsMapProjection } from './types';
+export { usMapProjection } from './projection';
 export { scopes } from './scopes';

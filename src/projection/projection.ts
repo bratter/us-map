@@ -1,8 +1,9 @@
 import { GeoStream, geoAlbers} from 'd3-geo';
-import { Point, PointStream, Projection, Inset } from './types';
+import { Point, PointStream, UsMapProjection, Inset } from './types';
 import { getInsetStates, makeInsets, SCALE, VIEWBOX, EPSILON } from './util';
 import { multiplex } from './mulitplex';
-import { insetData, insetFips } from './insets-data';
+import { scopes } from './scopes';
+import { insetData } from './insets-data';
 
 /**
  * Create a customized Albers' (US-centered) equal area conic projection.
@@ -15,10 +16,10 @@ import { insetData, insetFips } from './insets-data';
  * FIPS codes can be provided, but only those containing `'02'`, `'15'`, and any valid code
  * greater than or equal to `'60'` will modify the projection.
  * 
- * @param stateIdList Array of 2-digit string State FIPS codes
+ * @param scope Array of 2-digit string State FIPS codes
  */
-export function projection(stateIdList: string[] = insetFips): Projection {
-  const insets: Inset[] = makeInsets(insetData, getInsetStates(stateIdList)),
+export function usMapProjection(scope: string[] = scopes.all()): UsMapProjection {
+  const insets: Inset[] = makeInsets(insetData, getInsetStates(scope)),
     lower48 = geoAlbers(),
     pointStream = { point: function(x, y) { point = [x, y]; } } as GeoStream,
     dx = 0.02,

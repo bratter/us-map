@@ -14,7 +14,7 @@ export type PointStream = { point: (x: number, y: number) => void};
  * codes can be provided, but only those containing `'02'`, `'15'`, and any valid code greater
  * than or equal to `'60'` will modify the projection.
  */
-export interface Projection extends Required<Pick<GeoProjection, 'invert'|'stream'|'precision'|'scale'>> {
+export interface UsMapProjection extends Required<Pick<GeoProjection, 'invert'|'stream'|'precision'|'scale'>> {
   /**
    * Returns a new array [x, y] (typically in pixels) representing the projected point of the given
    * point. The point must be specified as a two-element array [longitude, latitude] in degrees.
@@ -40,7 +40,7 @@ export interface Projection extends Required<Pick<GeoProjection, 'invert'|'strea
    *              approximately at the center of a 1024×576 area.
    */
   translate(): Point;
-  translate(point: Point): Projection;
+  translate(point: Point): UsMapProjection;
 }
 
 export interface Inset {

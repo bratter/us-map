@@ -1,4 +1,4 @@
-import { projection } from './projection';
+import { usMapProjection } from './projection';
 import { insetData } from './insets-data';
 import { Point } from './types';
 
@@ -24,28 +24,28 @@ expect.extend({
   },
 });
 
-describe('projection()', () => {
-  describe('projection() factory function', () => {
+describe('usMapProjection()', () => {
+  describe('uaMapProjection() factory function', () => {
     it('should return a function when passed on arguments', () => {
-      const proj = projection();
+      const proj = usMapProjection();
   
       expect(typeof proj).toEqual('function');
     });
 
     it('should have all insets when called with no arguments', () => {
-      const proj = projection();
+      const proj = usMapProjection();
   
       expect(proj.insets()).toHaveLength(5);
     });
   
     it('should have all insets when the full list of insettable states is passed', () => {
-      const proj = projection(['02', '15', '72', '78', '60', '66', '69']);
+      const proj = usMapProjection(['02', '15', '72', '78', '60', '66', '69']);
   
       expect(proj.insets()).toHaveLength(5);
     });
   
     it('should have no insets when called with an empty array', () => {
-      const proj = projection([]);
+      const proj = usMapProjection([]);
   
       expect(proj.insets()).toHaveLength(0);
     });
@@ -57,7 +57,7 @@ describe('projection()', () => {
       const exp = expect
         .arrayContaining(insetData.filter(d => d.id === 'AK' || d.id === 'GU-MP')
         .map(d => expect.objectContaining(d)));
-      const proj = projection(['02', '66']);
+      const proj = usMapProjection(['02', '66']);
   
       expect(proj.insets()).toHaveLength(2);
       expect(proj.insets()).toEqual(exp);
@@ -78,7 +78,7 @@ describe('projection()', () => {
 
     it.each(data)(
       'should return the expected coords for default projection with all insets (%s)', (name, coords, point) => {
-      const proj = projection();
+      const proj = usMapProjection();
 
       expect(proj(coords)).pointToMatch(point);
       expect(proj.invert(point)).pointToMatch(coords);
@@ -87,7 +87,7 @@ describe('projection()', () => {
     // Slice out chicago and los angeles, then all the remainder should be null when projected
     // The inverts should be from the lower 48 (but will just test that they don't match the expected)
     it.each(data.slice(2))('should return null for points when their inset is absent (%s)', (name, coords, point) => {
-      const proj = projection([]);
+      const proj = usMapProjection([]);
 
       expect(proj(coords)).toBeNull();
       expect(proj.invert(point)).not.pointToMatch(coords);
@@ -96,14 +96,14 @@ describe('projection()', () => {
     it.each(data)('should return translated coordinates when the projection is translated (%s)', (names, coords, point) => {
       const tx = 1024 / 2, ty = 576 / 2, 
         dx = 20, dy = -10, 
-        proj = projection().translate([tx + dx, ty + dy]);
+        proj = usMapProjection().translate([tx + dx, ty + dy]);
 
       expect(proj(coords)).pointToMatch([point[0] + dx, point[1] + dy]);
       expect(proj.invert([point[0] + dx, point[1] + dy])).pointToMatch(coords);
     });
 
     it.each(data)('should return scaled coordinates when the projection is scaled (%s)', (name, coords, point, scaled) => {
-      const proj = projection().scale(800);
+      const proj = usMapProjection().scale(800);
 
       expect(proj(coords)).pointToMatch(scaled);
       expect(proj.invert(scaled)).pointToMatch(coords);

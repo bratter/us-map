@@ -28,37 +28,152 @@ Alternatively, both UMD and ES6 module flavors are available when required, e.g.
 
 * [US Map](#us-map)
 * [Zoomable](#zoomable)
+* [Features](#features)
 * [Premade Features](#premade-features)
 * [Projection](#projection)
-
-TODO: Document scopes somewhere, can be passed to projection and usMap.
 
 
 ### US Map
 
+Object that creates the main interface for US Maps.
+
+<a href="#usmap" name="usmap">#</a> <b>usMap</b>(*scope*) [<>](https://github.com/bratter/us-map/blob/master/src/map/us-map.ts "Source")
+
+Factory function that returns a configurable US-Map rendering function. The returned object is both a rendering function that produces a container for us map elements and an object containing several settings for the map.
+
+It is called with a "scope" which is an array of strings indicating what insets will be built into the map's projection. See documentation for scopes in the [projection](#projection) section
+
+<a href="#_usmap" name="_usmap">#</a> <i>usMap</i>(<i>selection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
+
+When passed a selection or a transition containing `<svg>` elements, builds a container into which usMap features can be rendered. The function appends or selects a `g.usMap` element that will be the host for adding features and providing zoom behavior as described later. The group can be grabbed as the return value or post-selected:
+
+```javascript
+const svg = d3.create('svg');
+const map = usMap();
+
+// These two are equivalent selections
+const returnValue = map(svg);
+const postSelect = svg.call(usMap).selectAll('g.usMap');
+```
+
+Features, or anything that should zoom or pan with the map should be added as a child of the returned group selection, while anything positioned statically should be added as a child of the svg selection.
+
+<a href="#usmap_projection" name="usmap_projection">#</a> <i>usMap</i>.<b>projection</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
+
+Retrieve the current custom projection from the `usMap` instance. This projection should be used to transform coordinates and GeoJSON objects into the map's domain. For instance, the projection can be:
+
+* Passed to the [feature constructor](#_feature) to project a feature
+* `projection.invert()` to transfom pointer coordinates to lat/lng pairs 
+
+<a href="#usmap_viewbox" name="usmap_viewbox">#</a> <i>usMap</i>.<b>viewBox</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
+
+Returns the bottom-right corner of the map's viewbox as `[x, y]`, asssuming the top-left is `[0, 0]`. This is independent of the size of the svg itself (see size below).
+
+<a href="#usmap_size" name="usmap_size">#</a> <i>usMap</i>.<b>size</b>(<i>size</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
+
+When *size* is specified sets the current size by merging the passed object with the current size. The specified object has a `width` and a `height` member, both of which are optional. when provided the member will overwrite the current value. If *size* is not specified, returns a clone of the current *size*. The *size* will be set on the containing `<svg>` element.
+
 
 ### Zoomable
 
-Mixin for the US Map object that add predefined pan and zoom functionality from [d3-zoom](https://github.com/d3/d3-zoom).
+Mixin for the US Map object that add predefined pan and zoom functionality from [d3-zoom](https://github.com/d3/d3-zoom). It automatically manages attaching handlers to the appropriate elements and provides an option for zoom behavior to be synchronized across all svg elements in a selection.
+
+The mixin inherits all members from [d3-zoom](https://github.com/d3/d3-zoom), so all settings available on the zoom object are available, except for the function call which is managed by the component.
+
+<a href="#zoomable" name="zoomable">#</a> <b>zoomable</b>(<i>usMap</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/us-map.ts "Source")
+
+Factory function to convert a *usMap* instance into a zoomable usMap. The returned object is an extension of the base *usMap* that mixes in all the members of *usMap* with additional members beow, and overrides the rendering function to set appropriate zoom event listeners. It is called with a *usMap* instance as follows:
+
+```javascript
+const map = usMap();
+const zoomableMap = zoomable(map);
+
+// The resulting object is the callable like the base map
+d3.create('svg').call(zoomableMap);
+```
+
+<a href="#_zoomable" name="_zoomable">#</a> <i>zoomable</i>(<i>selection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/zoomable/zoomable.ts "Source")
+
+When passed a selection or a transition containing `<svg>` elements, builds the same container elements as the base [usMap](#_usmap). Additionally, the zoomable will add appropraite zoom event handlers to ensure correct zoom behavior and add a transparent underlay to avoid quirks with pointer events.
+
+<a href="#zoomable_clear" name="zoomable_clear">#</a> <i>zoomable</i>.<b>clear</b>() [<>](https://github.com/bratter/us-map/blob/master/src/zoomable/zoomable.ts "Source")
+
+Clears the zoomable behavior on the passed selection by removing the zoom event handlers and marking the map as unzoomed. The behavior can be re-added by passing the selection through the *zoomable* instance again. This method does not reset the zoom transform in case the user wishes to lock in the current transform, however a reset can be done manually before clearing if required. 
+
+<a href="#zoomable_sync" name="zoomable_sync">#</a> <i>zoomable</i>.<b>sync</b>(<i>sync</i>) [<>](https://github.com/bratter/us-map/blob/master/src/zoomable/zoomable.ts "Source")
+
+When *sync* is specified (as a boolean), sets the current sync setting. Defaults to `false`. If *sync* is not specified, will return the current sync setting. Sync settings work as follows:
+
+* `true`: All elements in the selection have synchronized zoom transforms applied &ndash; zooming or panning one will automatically adjust the other elements in the selection.
+* `false` (default): Each element in the selection is zoomed independently.
+
+
+### Features
+
+Easily construct US Map features based on arbitrary GeoJSON for addition to the map. The feature API uses a d3 idiomatic data-driven approach &ndash; GeoJSON features should be merged with data being represented (if any) before being bound to the parent element that is then called with the *feature* renderer. This affords maximum flexibility in building data-driven maps.
+
+<a href="#feature" name="feature">#</a> <b>feature</b>(<i>id</i>, <i>projection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+Factory function for creating a feature for US Maps. This factory creates a render function that will render a collection of GeoJSON objects. The function is called with two arguments:
+
+* *id*: A required string with the type/id of the feature to be rendered. Used in class names to ensure unique selection.
+* *projection* (optional): If specified, uses the passed projection to render the GeoJSON objects. If not specified, assumes pre-projected GeoJSON. Generall you will want to pass the projection from the *usMap* instance to use the same projection.
+
+<a href="#_feature" name="_feature">#</a> <i>feature</i>(<i>selection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+When passed a selection or transition of svg `<g>` elements *with bound GeoJSON data* will render the GeoJSON features into the group(s). To use the *usMap* settings and faciliate zooming, the groups should be the returned groups from a call to `usMap(svg)`. The *feature* will generate multiple layers per map if a nested data structure is provided
+
+The *datum* attached to each element in the selection must be a valid array of GeoJSON Features. The feature API can then use any part of the data to color the fill or stroke of the rendered paths based on data. In the GeoJSON spec, additional data beyond the id should be bound into a `properties` key on the GeoJSON. This data can be accessed with the *fill* and *stroke* accessors as described below.
+
+<a href="#feature_id" name="feature_id">#</a> <i>feature</i>.<b>id</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+Return the id/type of the feature. Useful for selectors if you need to post-select the feature paths.
+
+<a href="#feature_fill" name="feature_fill">#</a> <i>feature</i>.<b>fill</b>(<i>accessor</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+When *accessor* is specified, sets the feature's fill data accessor to the passed function. The accessor function receives the current datum (which will be the GeoJSON feature) and the index. If *accessor* is not specified, will return the current value, which defaults to a function that always returns `undefined`.
+
+The result of calling this function with the passed datum will be provided to the fill color scale for evaluation.
+
+<a href="#feature_fill_color" name="feature_fill_color">#</a> <i>feature</i>.<b>fillColor</b>(<i>scale</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+When *scale* is specified, sets the feature's fill scale to the provided value, which should be a *d3-scale* instance set up with a color range *or* an array of color strings. When a scale is passed it replaces the existing scale, when an array of colors is provided, it creates a new ordinal scale with the passed array as the range. If *scale* is not specified, returns the current fill color scale which defaults to a single light gray value in a `d3.scaleOrdinal` instance. This scale is modified in place, so it can be retrieved and modified if desired. When working with ordinal scales, watch out for implicit domain construction, which may not be the behavior you want. [See d3 docs for details](https://github.com/d3/d3-scale#ordinal-scales).
+
+<a href="#feature_stroke" name="feature_stroke">#</a> <i>feature</i>.<b>stroke</b>(<i>accessor</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+When *accessor* is specified, sets the feature's stroke data accessor to the passed function. The accessor function receives the current datum (which will be the GeoJSON feature) and the index. If *accessor* is not specified, will return the current value, which defaults to a function that always returns `undefined`.
+
+The result of calling this function with the passed datum will be provided to the stroke color scale for evaluation.
+
+<a href="#feature_stroke_color" name="feature_stroke_color">#</a> <i>feature</i>.<b>strokeColor</b>(<i>scale</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+When *scale* is specified, sets the feature's stroke scale to the provided value, which should be a *d3-scale* instance set up with a color range *or* an array of color strings. When a scale is passed it replaces the existing scale, when an array of colors is provided, it creates a new ordinal scale with the passed array as the range. If *scale* is not specified, returns the current stroke color scale which defaults to white in a `d3.scaleOrdinal` instance. This scale is modified in place, so it can be retrieved and modified if desired. When working with ordinal scales, watch out for implicit domain construction, which may not be the behavior you want. [See d3 docs for details](https://github.com/d3/d3-scale#ordinal-scales).
+
+<a href="#feature_width" name="feature_width">#</a> <i>feature</i>.<b>width</b>(<i>width</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
+
+If *width* is specified as  anumber in px, set the stroke width to be applied to the feature. If *width* is not specified, returns the current stroke width.
+
+Stroke width is applied to the group, not the individual path elements and is a fixed width. The scale stroke behavior can be used to adjust the strok width automatically when the map is zoomed.
 
 
 ### Premade Features
 
-*The premade feature API is likely to change substantially before a v1 release to account for filtering insets.* 
+*The premade feature API is not documented and is likely to change substantially before a v1 release to account for filtering insets.* 
 
 
 ### Projection
 
-<a href="#usMapProjection" name="usMapProjection">#</a> <b>usMapProjection</b>(*stateIdList*) [<>](https://github.com/bratter/us-map/blob/master/src/projection/projection.ts "Source")
+<a href="#usMapProjection" name="usMapProjection">#</a> <b>usMapProjection</b>(*scope*) [<>](https://github.com/bratter/us-map/blob/master/src/projection/projection.ts "Source")
 
 Factory function that returns a non-standard customized Albers' projection.
 
 By default, the projection places the lower-48 states centered in a 1024×576 (widescreen) viewport.
 
-When called with no arguments, produces a projection that includes all states and insular areas, equivalent to passing the array below. This behavior can be customized by passing an array of two-digit strings as the *stateIdList* argument. This array should contain a list of two-digit [FIPS State Codes](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code) *as strings* as follows:
+When called with no arguments, produces a projection that includes all states and insular areas, equivalent to passing the array below. This behavior can be customized by passing an array of two-digit strings as the *scope* argument. This array should contain a list of two-digit [FIPS State Codes](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code) *as strings*, or use the provided [scopes](#scopes) helper functions also exported from the package:
 
 ```javascript
-const projection = usMapProjection(['02', '15', '72', '78', '66', '69', '60']);
+const projectionWithArray = usMapProjection(['02', '15', '72', '78', '66', '69', '60']);
+const projectionWithScopes = usMapProjection(scopes.all());
 ```
 
 Depending on the elements included in the array, the resulting projection include insets as follows:
@@ -99,3 +214,15 @@ If *scale* is specified, sets the projection’s scale factor to the specified v
 <a href="#projection_translate" name="projection_translate">#</a> <i>projection</i>.<b>translate</b>([<i>translate</i>]) [<>](https://github.com/bratter/us-map/blob/master/src/projection/projection.ts "Source")
 
 If *translate* is specified, sets the projection’s translation offset to the specified two-element array [<i>t<sub>x</sub></i>, <i>t<sub>y</sub></i>] and returns the projection. If *translate* is not specified, returns the current translation offset which defaults to [512, 288]. The translation offset determines the pixel coordinates of the projection’s center, which for this projection places the lower 48 states roughly in the center of a 1024×576 viewport.
+
+
+#### Scopes
+
+The package also exports a scopes constant that contains a number of helper methods to build common FIPS code strings to pass to both the projection and the usMap factory. Note that this only changes the insets rendered in the projection, it does not filter GeoJSON objects, and there is no way to remove the lower 48 states from the projection.
+
+* *scopes*.**all**(): Includes all states and insular area insets.
+* *scopes*.**states**(): Incudes the lower 48 states plus insets for AK and HI.
+* *scopes*.**lower48**(): Includes only the main projection for the lower 48 states.
+* *scopes*.**exclude**(*fipsArray*): Includes insets only for entities not explicitly excluded by the passed array.
+* *scopes*.**include**(*fipsArray*): Includes insets only for entities specified in the passed array.
+

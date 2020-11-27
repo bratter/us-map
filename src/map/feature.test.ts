@@ -4,7 +4,7 @@ import { Selection, select } from 'd3-selection';
 import { scaleQuantile, scaleOrdinal } from 'd3-scale';
 import { geoPath } from 'd3-geo';
 import { feature, Feature } from './feature';
-import { projection } from '../projection';
+import { usMapProjection } from '../projection';
 
 // Load the outlines converted to GeoJSON as some simple data to test
 const outlines = JSON.parse(readFileSync(resolve(__dirname, '..', '..', 'test', 'outlines.json')).toString('utf-8')).features;
@@ -68,8 +68,8 @@ describe('feature', () => {
     });
 
     // eslint-disable-next-line jest/expect-expect
-    it('should set the path d attr to a projected path when a projection is passed to the feature cnstructor', () => {
-      const proj = projection();
+    it('should set the path d attr to a projected path when a projection is passed to the feature constructor', () => {
+      const proj = usMapProjection();
       const f = feature(undefined, proj);
 
       const data = outlines[0];
@@ -82,7 +82,12 @@ describe('feature', () => {
       const data = outlines.slice(0, 2);
       const range = ['#000000', '#ffffff']
       const scale = scaleOrdinal(range);
-      f.fillColor(scale).strokeColor(scale);
+      // Set the fill and stroke accessors to id to get implicit domain construction on the scale
+      f
+        .fill(d => d.id)
+        .stroke(d => d.id)
+        .fillColor(scale)
+        .strokeColor(scale);
       const path = g.datum<any>(data).call(f).selectAll('path');
 
       expect.assertions(4);
@@ -102,19 +107,19 @@ describe('feature', () => {
     });
   });
 
-  describe('type() method', () => {
+  describe('id() method', () => {
     it('should return feature by default', () => {
-      expect(f.type()).toEqual('feature');
+      expect(f.id()).toEqual('feature');
     });
 
     it('should return the value passed in the factory function', () => {
-      expect(feature('test').type()).toEqual('test');
+      expect(feature('test').id()).toEqual('test');
     });
   });
 
   describe('fill() method', () => {
-    it('should return a function that accesses the id by default', () => {
-      expect(f.fill()({ id: 1 })).toEqual(1);
+    it('should return a function that returns undefined by default', () => {
+      expect(f.fill()({ id: 1 })).toBeUndefined();
     });
 
     it('should set the fill accessor to the passed function and return this', () => {
@@ -145,7 +150,7 @@ describe('feature', () => {
 
   describe('stroke() method', () => {
     it('should return a function that accesses the id by default', () => {
-      expect(f.stroke()({ id: 1 })).toEqual(1);
+      expect(f.stroke()({ id: 1 })).toBeUndefined();
     });
 
     it('should set the fill accessor to the passed function and return this', () => {

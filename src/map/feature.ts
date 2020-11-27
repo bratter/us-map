@@ -2,7 +2,7 @@ import { Selection } from 'd3-selection';
 import { GeoPermissibleObjects, geoPath } from 'd3-geo';
 import { scaleOrdinal } from 'd3-scale';
 import { AccessorFunction, MinimalScale } from './types';
-import { Projection } from '../projection';
+import { UsMapProjection } from '../projection';
 
 /**
  * UsMap feature function.
@@ -23,7 +23,7 @@ export interface Feature {
   <GeoDatum extends GeoPermissibleObjects>(selection: Selection<SVGGElement, GeoDatum[], any, any>): Selection<SVGGElement, GeoDatum[], any, any>;
 
   /** Return the type of the features. Useful for selectors. */
-  type(): string;
+  id(): string;
 
   /**
    * Get or set the current fill data accessor. The return value will be passed to the color scale for mapping.
@@ -37,7 +37,7 @@ export interface Feature {
   /**
    * Get or set the fill color scale.
    * 
-   * Defaults to a single light grey value in an ordinal scale. To set a new scale either:
+   * Defaults to a single light gray value in an ordinal scale. To set a new scale either:
    * Retrieve the existing ordinal scale and modify, create a new scale (of any type) and pass in,
    * or pass an array of strings representing a new range for an ordinal scale. The return value
    * from the fill accessor will be passed to the scale for evaluation.
@@ -86,31 +86,32 @@ export interface Feature {
 /**
  * Factory function for creating a feature for US Maps.
  * 
- * Renders a collection of pre-projected GeoJSON objects.
+ * Renders a collection of GeoJSON objects with the provided projection. If no projection is
+ * provided, assumes pre-projected GeoJSON.
  * 
  * For UsMap, pre-built features have been prepared for nation, states, and counties based on the
  * [@d3ts/us-atlas](https://github.com/bratter/us-atlas).
  * 
- * @param type The type of feature to be used in the class name
+ * @param id An identifier for the feature to be used in the class name
+ * @param projection Projection to render the feature with
  */
-export function feature(type = 'feature', projection?: Projection): Feature {
-  // Using unprojected path only, feature can only be ,used for pre-projected GeoJSON
+export function feature(id = 'feature', projection?: UsMapProjection): Feature {
   const path = geoPath<any, any>(projection);
 
-  let fill: AccessorFunction = d => d?.id;
+  let fill: AccessorFunction = () => undefined;
   let fillColor: MinimalScale = scaleOrdinal(['#e5e5e5']);
-  let stroke: AccessorFunction = d => d?.id;
+  let stroke: AccessorFunction = () => undefined;
   let strokeColor: MinimalScale = scaleOrdinal(['#ffffff']);
   let width = 1;
 
   function feature<GeoDatum>(selection: Selection<SVGGElement, GeoDatum[], any, any>): Selection<SVGGElement, GeoDatum[], any, any> {
     const wrapper = selection
-      .selectAll<SVGGElement, GeoPermissibleObjects[]>(`g.${type}Wrapper`)
+      .selectAll<SVGGElement, GeoPermissibleObjects[]>(`g.${id}Wrapper`)
       // Double array if data is falsy means this does not error even if there is no bound data
       .data(d => d ? [d] : [[]])
       .join(enter => enter
         .append('g')
-        .classed(`${type}Wrapper`, true)
+        .classed(`${id}Wrapper`, true)
         .attr('stroke-linejoin', 'round')
         // Pointer-events="visible" means that unfilled paths will still capture events
         // as long as the element is not hidden
@@ -119,18 +120,18 @@ export function feature(type = 'feature', projection?: Projection): Feature {
       .attr('stroke-width', width);
     
     wrapper
-      .selectAll(`path.${type}`)
+      .selectAll(`path.${id}`)
       // Join on the id if it is present, the index otherwise using nullish coalescing 
       .data(d => d, (d: any, i) => d.id ?? i)
       // Calculate path on enter for performance, therefore path data cannot change on re-render
-      .join(enter => enter.append('path').classed(type, true).attr('d', path))
+      .join(enter => enter.append('path').classed(id, true).attr('d', path))
       .attr('fill', (d, i) => fillColor(fill(d, i)))
       .attr('stroke', (d, i) => strokeColor(stroke(d, i)));
 
     return wrapper;
   }
 
-  feature.type = () => type;
+  feature.id = () => id;
   feature.fill = function (_?) { return _ === undefined ? fill : (fill = _, this) };
   feature.fillColor = function (_?) {
     return _ === undefined

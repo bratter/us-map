@@ -1,6 +1,6 @@
 import { Selection, select } from 'd3-selection';
 import { usMap } from './us-map';
-import { projection } from '../projection';
+import { usMapProjection } from '../projection';
 
 describe('usMap', () => {
   let map = usMap();
@@ -60,7 +60,7 @@ describe('usMap', () => {
 
   describe('projection() method', () => {
     it('should return a usMapProjection', () => {
-      expect(map.projection()([ -87.6298,  41.8781])).toEqual(projection()([ -87.6298,  41.8781]));
+      expect(map.projection()([ -87.6298,  41.8781])).toEqual(usMapProjection()([ -87.6298,  41.8781]));
     });
   });
 
