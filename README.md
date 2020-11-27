@@ -56,7 +56,7 @@ const returnValue = map(svg);
 const postSelect = svg.call(usMap).selectAll('g.usMap');
 ```
 
-Features, or anything that should zoom or pan with the map should be added as a child of the returned group selection, while anything positioned statically should be added as a child of the svg selection.
+Features, or anything that should zoom or pan with the map should be added as a child of the returned group selection, while anything positioned statically should be added as a child of the svg selection. The map function will cascade any data bound to the input selection down to the output group for fruther use in features if desired. 
 
 <a href="#usmap_projection" name="usmap_projection">#</a> <i>usMap</i>.<b>projection</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
 

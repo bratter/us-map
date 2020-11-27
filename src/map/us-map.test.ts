@@ -56,6 +56,11 @@ describe('usMap', () => {
       expect(+svg.attr('width')).toEqual(200);
       expect(+svg.attr('height')).toEqual(100);
     });
+
+    it('should cascade any passed data through to the resulting group', () => {
+      svg.datum(42);
+      expect(map(svg).datum()).toEqual(42);
+    });
   });
 
   describe('projection() method', () => {

@@ -60,7 +60,7 @@ export function usMap(scope: string[] = scopes.all()): UsMap {
       .attr('width', size.width)
       .attr('height', size.height)
       .selectAll<SVGGElement, any>('g.usMap')
-      .data([null])
+      .data(d => [d])
       .join(enter => enter.append('g').classed('usMap', true));
   }
 
