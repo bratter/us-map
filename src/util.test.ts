@@ -1,6 +1,7 @@
 import {
   mergeFeatureProps,
   mergeTopoProps,
+  filterTopoObject,
   GeometryCollectionNonNull,
   fluentAssign,
   conditionalFluentAssign,
@@ -12,7 +13,11 @@ const geoJSONFeatures: GeoJSON.Feature<GeoJSON.Geometry, { prop1: number }>[] = 
   { type: 'Feature', id: 2, properties: { prop1: 2 }, geometry: { type: 'Point', coordinates: [] } },
 ];
 
-const topology: Topology<{ nation: GeometryCollectionNonNull<{ prop1: number }> }> = {
+const topology: Topology<{
+  nation: GeometryCollectionNonNull<{ prop1: number }>,
+  states: GeometryCollectionNonNull<{ prop1: number }>,
+  other: any,
+}> = {
   type: 'Topology',
   arcs: [],
   objects: {
@@ -23,6 +28,17 @@ const topology: Topology<{ nation: GeometryCollectionNonNull<{ prop1: number }> 
         { type: 'LineString', id: 2, arcs: [], properties: { prop1: 2 } },
       ],
     },
+    states: {
+      type: 'GeometryCollection',
+      geometries: [
+        { type: 'LineString', id: 1, arcs: [], properties: { prop1: 1 } },
+        { type: 'LineString', id: 2, arcs: [], properties: { prop1: 2 } },
+      ],
+    },
+    other: {
+      type: 'Point',
+      coordinates:[0, 0],
+    }
   },
 }
 
@@ -79,6 +95,38 @@ describe('mergeTopoProps() function', () => {
 
     expect(props[0].prop1).toEqual(42);
     expect(props[1].prop1).toEqual(2);
+  });
+});
+
+describe('filterTopoObject() function', () => {
+  it('should return a deep equal copy of the topology if an identity filter is passed', () => {
+    const filtered = filterTopoObject(topology, 'nation', () => true);
+    expect(filtered).toEqual(topology);
+  });
+
+  it('should filter the array corresponding to the feature being modified, but leave other features intact', () => {
+    const filtered = filterTopoObject(topology, 'nation', d => d.id !== 1);
+    expect(filtered.objects.nation.geometries).toHaveLength(1);
+    expect(filtered.objects.nation.geometries[0]).toBe(topology.objects.nation.geometries[1]);
+
+    expect(filtered.objects.states.geometries).toHaveLength(2);
+    expect(filtered.objects.states).toBe(topology.objects.states);
+    expect(filtered.objects.other).toBe(topology.objects.other);
+  });
+
+  it('should not modify any ancestor keys, but replace them when filtering a topology, but keeps the same sibling objects', () => {
+    const filtered = filterTopoObject(topology, 'nation', d => d.id !== 1);
+    
+    expect(filtered.objects.nation).not.toBe(topology.objects.nation);
+    expect(filtered.objects.states).toBe(topology.objects.states);
+
+    expect(filtered.objects).not.toBe(topology.objects);
+    expect(filtered.arcs).toBe(topology.arcs);
+  });
+
+  it('should throw an error if the object type does no exist or is not a GeometryCollection', () => {
+    expect(() => filterTopoObject(topology, 'other', d => d.id !== 1)).toThrow(TypeError);
+    expect(() => filterTopoObject(topology, 'nothing', d => d.id !== 1)).toThrow(TypeError);
   });
 });
 

@@ -117,7 +117,7 @@ export const stateMesh: (topology: Topology) => PremadeFeature = (
     f.width(0.5).strokeColor().range(['#202020']);
     f.fillColor().range(['none']);
   },
-  includeNation ? (a, b) => (a !== b) : undefined,
+  includeNation ? undefined: (a, b) => (a !== b),
 )(topology);
 
 /**
@@ -138,6 +138,7 @@ export const stateMesh: (topology: Topology) => PremadeFeature = (
  * 
  * @param topology The topology object to build the feature from
  * @param includeNation Flag to indicate whether the nation border should also be included
+ * @param includeState Flag to indicate whether the state border should also be included
  */
 export const countyMesh: (topology: Topology) => PremadeFeature = (
   topology: Topology<UsAtlasObjects>,

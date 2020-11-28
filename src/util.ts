@@ -43,8 +43,6 @@ export function isGeoCollection<T>(object: GeometryObject<T>): object is Geometr
  *  
  * @param featureSet Array of GeoJSON features into which to merge the new properties
  * @param propsMap A Map of GeoJSON feature id's to new properties to merge
- * 
- * TODO: Consider the partial beavior for TypeScript - is a less flexible version that errors better?
  */
 export function mergeFeatureProps<P = GeoJSON.GeoJsonProperties, U = GeoJSON.GeoJsonProperties>(
   featureSet: GeoJSON.Feature<GeoJSON.Geometry, P>[],
@@ -76,8 +74,6 @@ export function mergeFeatureProps<P = GeoJSON.GeoJsonProperties, U = GeoJSON.Geo
  * @param topology The topology to modify
  * @param objectKey The object key on the topology to merge props with
  * @param propsMap Map of additional properties keyed by id to merge
- * 
- * TODO: How to improve typing?
  */
 export function mergeTopoProps<O extends Objects = Objects>(
   topology: Topology,
@@ -103,6 +99,38 @@ export function mergeTopoProps<O extends Objects = Objects>(
           return { ...geom, properties: { ...geom.properties, ...newProps } };
         }),
       },
+    },
+  };
+}
+
+/**
+ * Filter a given key on a given topology using the passed callback function.
+ * 
+ * The object must have a type of `'GeometryCollection'` or the function will throw an error.
+ * The callback receives a feature entry and processes it using the standard array filter.
+ * 
+ * @param topology The topology to filter
+ * @param objectKey The object key on the topology to filter, must be a `'GeometryCollection'`
+ * @param filterCallback Callback to be passed to `Array.prototype.filter`
+ */
+export function filterTopoObject<P extends GeoJSON.GeoJsonProperties = GeoJSON.GeoJsonProperties>(
+  topology: Topology<P>,
+  objectKey: string,
+  filterCallback: (value: GeoJSON.Feature<GeoJSON.Geometry, P>, index: number) => boolean,
+): Topology<P> {
+  const object = topology.objects[objectKey];
+
+  if (!object || !isGeoCollection(object))
+    throw new TypeError('The Geometry Object must be of type "GeometryCollection".');
+
+  return {
+    ...topology,
+    objects: {
+      ...topology.objects,
+      [objectKey]: {
+        ...object,
+        geometries: object.geometries.filter(filterCallback as any),
+      }
     },
   };
 }
