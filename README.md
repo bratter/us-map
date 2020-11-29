@@ -1,4 +1,4 @@
-# d3ts-us-map
+# d3ts US Map Tooling
 Composable tooling for d3-based US maps. This repository builds on the custom Albers' projection in TopoJSON's [US Atlas](https://github.com/topojson/us-atlas) by providing a:
 
 1. Flexible projection that can optionally include all US States and Insular Areas.
@@ -7,7 +7,7 @@ Composable tooling for d3-based US maps. This repository builds on the custom Al
 
 The API is documented in this readme, while live code examples are available in [this Observable notebook](https://observablehq.com/@bratter/us-map-examples).
 
-*__Please note__ that the API is still under development and should be considered unstable while the major version is `< 1.0`. I am strongly considering removing TypeScript and changing the npm organization this is publisehd under, in addition to redesigning the premade feature API.*
+*__Please note__ that the API is still under development and should be considered unstable while the major version is `< 1.0`. I am strongly considering removing TypeScript and changing the npm organization this is publisehd under.*
 
 
 ## Installing
@@ -303,3 +303,9 @@ The package also exports a scopes constant that contains a number of helper meth
 * *scopes*.**exclude**(*fipsArray*): Includes insets only for entities not explicitly excluded by the passed array.
 * *scopes*.**include**(*fipsArray*): Includes insets only for entities specified in the passed array.
 
+
+## Contributing
+
+PRs and issues welcomed.
+
+All production dependencies are peerDependencies, they are duplicated in devDependencies for testing.
