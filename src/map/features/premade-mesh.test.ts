@@ -34,6 +34,7 @@ describe('premade mesh', () => {
     });
   });
 
+  // TODO: Test that the fipsLookupFn works for outline mesh's ids, maybe just as a test for the fips fn itself
   describe('outlineMesh() render function', () => {
     let f: PremadeFeature;
     let g: Selection<SVGGElement, any, any, any>;
@@ -89,11 +90,16 @@ describe('premade mesh', () => {
     });
 
     it('should throw an error if the topology object does not include a nation object', () => {
-      const topology: any  = { type: 'Topology', objects: {}, arcs: [] };
-      expect(() => stateMesh(topology)).toThrow(TypeError);
+      const topology: any  = { type: 'Topology', objects: {states: {}}, arcs: [] };
+      expect(() => nationMesh(topology)).toThrow(TypeError);
     });
 
-    it('should create a groups and set accessors/attributes: width 1, fill noen, stroke dark grey, pointer events none', () => {
+    it('should throw an error if the topology object does not include a states object', () => {
+      const topology: any  = { type: 'Topology', objects: {nation: {}}, arcs: [] };
+      expect(() => nationMesh(topology)).toThrow(TypeError);
+    });
+
+    it('should create a groups and set accessors/attributes: width 1, fill none, stroke dark grey, pointer events none', () => {
       const wrap = f(g);
       const path = wrap.select('path');
 
@@ -152,7 +158,7 @@ describe('premade mesh', () => {
 
     it('should throw an error if the topology object does not include a states object', () => {
       const topology: any  = { type: 'Topology', objects: {}, arcs: [] };
-      expect(() => stateMesh(topology)).toThrow(TypeError);
+      expect(() => countyMesh(topology)).toThrow(TypeError);
     });
 
     it('should create a groups and set accessors/attributes: width 0.5, fill none, stroke mid grey, pointer events none', () => {

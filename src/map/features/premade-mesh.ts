@@ -1,7 +1,8 @@
 import { Topology, GeometryObject } from 'topojson-specification';
-import { mesh } from 'topojson-client';
+import { makeMeshGeoJSON } from './make-geojson';
 import { UsAtlasObjects, PremadeFeature, PropsSelection } from './types';
 import { feature, Feature } from '../feature';
+import { scopes } from '../../projection';
 
 /** Map object names to feature type values */
 const typeMap = new Map([
@@ -27,24 +28,26 @@ function makePremadeMesh(
   object: 'nation'|'states'|'counties'|'outlines',
   featureCb?: (feature: Feature) => void,
   filter?: (a: GeometryObject, b: GeometryObject) => boolean,
-): (topology: Topology<UsAtlasObjects>) => PremadeFeature {
-  return function premadeMesh(topology: Topology<UsAtlasObjects>): PremadeFeature {
+): (topology: Topology<UsAtlasObjects>, scope?: string[]) => PremadeFeature {
+  return function premadeMesh(topology: Topology<UsAtlasObjects>, scope = scopes.all()): PremadeFeature {
     if (!topology?.objects?.[object])
       throw new TypeError(`The passed topology must have a ${object} object.`);
     
-    const type = typeMap.get(object);
-    const geoJson = mesh(topology, topology.objects[object], filter);
-    const f = feature(type);
+    const geoJson = makeMeshGeoJSON(topology, scope, object, filter);
+    const className = `${typeMap.get(object)}Merge`;
+    const f = feature(typeMap.get(object));
     // Set any settings on the feature if passed
     if (featureCb) featureCb(f);
 
     function premadeMesh(selection: PropsSelection) {
       const merge = selection
-        .selectAll<SVGGElement, any>(`g.${type}Merge`)
+        .selectAll<SVGGElement, any>(`g.${className}`)
         .data([[geoJson]])
-        .join(enter => enter.append('g').classed(`${type}Merge`, true))
+        .join('g')
+        .classed(className, true);
       
-      return f(merge).attr('pointer-events', 'none');
+      return f(merge)
+        .attr('pointer-events', 'none');
     }
 
     return Object.assign(premadeMesh, f);
@@ -64,6 +67,7 @@ function makePremadeMesh(
  * and `strokeColor()` methods.
  * 
  * @param topology The topology object to build the feature from
+ * @param scope Scope of features to render
  */
 export const outlineMesh = makePremadeMesh('outlines', f => {
   f.width(0.5).strokeColor().range(['#777777']);
@@ -83,6 +87,7 @@ export const outlineMesh = makePremadeMesh('outlines', f => {
  * and color can be set using the `width()` and `strokeColor()` methods.
  * 
  * @param topology The topology object to build the feature from
+ * @param scope Scope of features to render
  */
 export const nationMesh = makePremadeMesh('nation', f => {
   f.strokeColor().range(['#202020']);
@@ -106,19 +111,21 @@ export const nationMesh = makePremadeMesh('nation', f => {
  * most useful when the mesh is being used as an overlay.
  * 
  * @param topology The topology object to build the feature from
+ * @param scope Scope of features to render
  * @param includeNation Flag to indicate whether the nation border should also be included
  */
-export const stateMesh: (topology: Topology) => PremadeFeature = (
+export const stateMesh = (
   topology: Topology<UsAtlasObjects>,
+  scope = scopes.all(),
   includeNation = false,
-) => makePremadeMesh(
+): PremadeFeature => makePremadeMesh(
   'states',
   f => {
     f.width(0.5).strokeColor().range(['#202020']);
     f.fillColor().range(['none']);
   },
   includeNation ? undefined: (a, b) => (a !== b),
-)(topology);
+)(topology, scope);
 
 /**
  * Create a county mesh feature based on pre-projected and filtered UsAtlas Topology.
@@ -137,17 +144,19 @@ export const stateMesh: (topology: Topology) => PremadeFeature = (
  * includes *inner* borders, which is most useful when the mesh is being used as an overlay.
  * 
  * @param topology The topology object to build the feature from
+ * @param scope Scope of features to render
  * @param includeNation Flag to indicate whether the nation border should also be included
- * @param includeState Flag to indicate whether the state border should also be included
+ * @param includeStates Flag to indicate whether the state border should also be included
  */
-export const countyMesh: (topology: Topology) => PremadeFeature = (
+export const countyMesh = (
   topology: Topology<UsAtlasObjects>,
+  scope = scopes.all(),
   includeNation = false,
-  includeState = false,
-) => {
+  includeStates = false,
+): PremadeFeature => {
   const meshCondition = (a: GeometryObject, b: GeometryObject) => 
     (includeNation || a !== b)
-    && (includeState || (+a.id / 1000 | 0) === (+b.id / 1000 | 0));
+    && (includeStates || (+a.id / 1000 | 0) === (+b.id / 1000 | 0));
 
   return makePremadeMesh(
     'counties',
@@ -156,5 +165,5 @@ export const countyMesh: (topology: Topology) => PremadeFeature = (
       f.fillColor().range(['none']);
     },
     meshCondition,
-  )(topology)
+  )(topology, scope)
 };

@@ -21,6 +21,11 @@ export interface UsMap {
   projection(): UsMapProjection;
 
   /**
+   * Returns a clone of the passed scope.
+   */
+  scope(): string[];
+
+  /**
    * Returns the bottom-right corner of the map's viewbox as `[x, y]`,
    * assuming the top left is `[0, 0]`.
    */
@@ -65,6 +70,7 @@ export function usMap(scope: string[] = scopes.all()): UsMap {
   }
 
   usMap.projection = () => projection;
+  usMap.scope = () => scope.slice();
   usMap.viewBox = () => [...VIEWBOX] as [number, number];
   usMap.size = function (_?) {
     return _ === undefined ? { ...size } : (Object.assign(size, _), this);

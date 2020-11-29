@@ -28,8 +28,8 @@ Alternatively, both UMD and ES6 module flavors are available when required, e.g.
 
 * [US Map](#us-map)
 * [Zoomable](#zoomable)
-* [Features](#features)
 * [Premade Features](#premade-features)
+* [Features](#features)
 * [Projection](#projection)
 
 
@@ -41,7 +41,7 @@ Object that creates the main interface for US Maps.
 
 Factory function that returns a configurable US-Map rendering function. The returned object is both a rendering function that produces a container for us map elements and an object containing several settings for the map.
 
-It is called with a "scope" which is an array of strings indicating what insets will be built into the map's projection. See documentation for scopes in the [projection](#projection) section
+It is called with a "scope" which is an array of strings indicating what insets will be built into the map's projection. See documentation for scopes in the [projection](#projection) section.
 
 <a href="#_usmap" name="_usmap">#</a> <i>usMap</i>(<i>selection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
 
@@ -64,6 +64,10 @@ Retrieve the current custom projection from the `usMap` instance. This projectio
 
 * Passed to the [feature constructor](#_feature) to project a feature
 * `projection.invert()` to transfom pointer coordinates to lat/lng pairs 
+
+<a href="#usmap_scope" name="usmap_scope">#</a> <i>usMap</i>.<b>scope</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
+
+Retrieve the current scope array from the `usMap` instance. This will be a clone of the scope passed in through the constructor. Potentially useful for passing to [premade features](#premade-features).
 
 <a href="#usmap_viewbox" name="usmap_viewbox">#</a> <i>usMap</i>.<b>viewBox</b>() [<>](https://github.com/bratter/us-map/blob/master/src/map/map.ts "Source")
 
@@ -108,9 +112,87 @@ When *sync* is specified (as a boolean), sets the current sync setting. Defaults
 * `false` (default): Each element in the selection is zoomed independently.
 
 
+### Premade Features
+
+The package provides functions to easily add a nation, state, and county features to the map instance. The premade features simplify several aspects of rendering features to the UsMap:
+
+1. They use pre-projected TopoJSON available as part of the [US-Atlas package](https://github.com/bratter/us-atlas), so no overhead of projecting TopoJSON.
+2. Features can be filtered based on a passed *scope* to ensure that only the appropriate entities are rendered.
+3. Provides functions to create both *shapes* to get one path per state/county, and *meshes* to create a single path just with borders for non-interactive aestheic overlays (including a set of outlines for each inset). 
+4. For shapes, data bound to the container is automatically merged with the GeoJSON feature and is therefore available for fill color or other uses.
+
+To set up a feature, use the following:
+
+```javascript
+// Somewhere the topojson is loaded and parsed, then:
+const scope = scopes.states();
+const map = usMap(scope)
+const feature = usMap.states(preProjectedTopoJSON, scope);
+const svg = d3.create('svg');
+
+// Here we use the return value from map(), but post selecting the g.usMap works also
+map(svg).call(feature);
+```
+
+Data can be added to premade features in a number of ways. It can be pre-merged with the TopoJSON if rendering a single static layer. It can also be added through post-selection of the feature's paths. The preferred way, however, is to bind data to the parent `<svg>` element then cascade through using d3's joins. Data passed to premade features in this manner must be present as a `Map` that maps FIPS codes to an object containing data fields. As a simple example, to set the `answer` field on the CA GeoJSON `properties` key, you would do:
+
+```javascript
+// Keeping the scope and feature from the above
+const data = new Map([['06', {answer: 42}]]);
+
+map(svg.data([data])).call(feature);
+```
+
+Note that if (a) data is missing for a GeoJSON feature, the feature will be rendered but the additional properties will be `undefined`, and (b) data is provided for features that don't exist, it will be skipped.
+
+A full example can be found in [this Observable notebook](https://observablehq.com/@bratter/us-map-examples).
+
+Seven premade features are available. A *shape* feature for nation, states, and counties, and a *mesh* feature for nation, states, counties, and inset outlines. Except for state and county meshes, they all have the same call signature and inherit all methods from the base [feature](#feature).
+
+<b>premadeFeature</b>(<i>topology</i>, <i>scope</i>)
+
+The *topology* argument is required, and should be one of the pre-projected topologies from the [US-Atlas package](https://github.com/bratter/us-atlas). Use the file corresponding to the most granular feature in your visualization for nation, states, and coutnies. The outlines feature has its own standalone topology file.
+
+The *scope* argument is optional and can be any array of FIPS codes, but recommend using the [scopes](#scopes) options. The lower 48 states will always be displayed, but AK, HI, and the insular areas will be rendered only if their FIPS code is present in the *scope* array.
+
+The state and county meshes have other optional arguments described below.
+
+<a href="#nation" name="nation">#</a> <b>nation</b>(<i>topology</i>, <i>scope</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-feature.ts "Source")
+
+A premade nation feature. Renders a single closed path of the entire US, constrained by the optional *scope*.
+
+<a href="#states" name="states">#</a> <b>states</b>(<i>topology</i>, <i>scope</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-feature.ts "Source")
+
+A premade states feature. Renders one closed path for each state and insular area allowed by the optional *scope*.
+
+<a href="#counties" name="counties">#</a> <b>counties</b>(<i>topology</i>, <i>scope</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-feature.ts "Source")
+
+A premade nation feature. Renders ones closed path for each county within the states/insular area allowed by the optional *scope*.
+
+<a href="#nationMesh" name="nationMesh">#</a> <b>nationMesh</b>(<i>topology</i>, <i>scope</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-mesh.ts "Source")
+
+A premade nation outline. Renders a single path of the entire US, constrained by the optional *scope*. The nation mesh will be a closed path and can therefore be filled.
+
+<a href="#stateMesh" name="stateMesh">#</a> <b>stateMesh</b>(<i>topology</i>, <i>scope</i>, <i>includeNation</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-mesh.ts "Source")
+
+A premade states outline. Renders a single open path, constrained by the optional *scope*. The mesh is an open path, so cannot be filled.
+
+The extra *includeNation* argument defaults to `false`, but should be set to `true` to also render the nation outline with the states. The default behavior only renders inner borders, which is usually desirable for overlays.
+
+<a href="#countyMesh" name="countyMesh">#</a> <b>countyMesh</b>(<i>topology</i>, <i>scope</i>, <i>includeNation</i>, <i>includeStates</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-mesh.ts "Source")
+
+A premade counties outline. Renders a single open path, constrained by the optional *scope*. The mesh is an open path, so cannot be filled.
+
+The extra *includeNation* and *includeStates* arguments default to `false`, but should be set to `true` to also render the nation outline and states outlines respectively. The default behavior only renders inner borders that are not shared with either the containing state or the nation. The default behavior is often desirable for overlays.
+
+<a href="#outlineMesh" name="outlineMesh">#</a> <b>outlineMesh</b>(<i>topology</i>, <i>scope</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/features/premade-mesh.ts "Source")
+
+A premade mesh for outlining each inset area in the projection. Renders a single open path, constrained by the optional *scope*. The mesh is an open path, so cannot be filled. This requires the separate outlines topology.
+
+
 ### Features
 
-Easily construct US Map features based on arbitrary GeoJSON for addition to the map. The feature API uses a d3 idiomatic data-driven approach &ndash; GeoJSON features should be merged with data being represented (if any) before being bound to the parent element that is then called with the *feature* renderer. This affords maximum flexibility in building data-driven maps.
+UsMaps also supports features based on arbitrary GeoJSON. The feature API uses a d3 idiomatic data-driven approach &ndash; GeoJSON features should be merged with data being represented (if any) before being bound to the parent element that is then called with the *feature* renderer. This affords maximum flexibility in building data-driven maps.
 
 <a href="#feature" name="feature">#</a> <b>feature</b>(<i>id</i>, <i>projection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
 
@@ -154,11 +236,6 @@ When *scale* is specified, sets the feature's stroke scale to the provided value
 If *width* is specified as  anumber in px, set the stroke width to be applied to the feature. If *width* is not specified, returns the current stroke width.
 
 Stroke width is applied to the group, not the individual path elements and is a fixed width. The scale stroke behavior can be used to adjust the strok width automatically when the map is zoomed.
-
-
-### Premade Features
-
-*The premade feature API is not documented and is likely to change substantially before a v1 release to account for filtering insets.* 
 
 
 ### Projection

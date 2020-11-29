@@ -11,18 +11,27 @@ const topo: Topology<UsAtlasObjects> = {
       { type: 'LineString', id: 'US', properties: { name: 'USA' }, arcs: [0] },
     ] },
     states: { type: 'GeometryCollection' , geometries: [
-      { type: 'LineString', id: 'US', properties: { name: '', code: '', abbrev: '', type: '' }, arcs: [0] },
+      { type: 'LineString', id: '02', properties: { name: '', code: '', abbrev: '', type: '' }, arcs: [0] },
+      { type: 'LineString', id: '15', properties: { name: '', code: '', abbrev: '', type: '' }, arcs: [0] },
+      { type: 'LineString', id: '99', properties: { name: '', code: '', abbrev: '', type: '' }, arcs: [0] },
     ] },
     counties: { type: 'GeometryCollection' , geometries: [
-      { type: 'LineString', id: 'US', properties: { name: '', state: '' }, arcs: [0] },
+      { type: 'LineString', id: '02123', properties: { name: '', state: '' }, arcs: [0] },
+      { type: 'LineString', id: '15123', properties: { name: '', state: '' }, arcs: [0] },
+      { type: 'LineString', id: '99123', properties: { name: '', state: '' }, arcs: [0] },
     ] } },
   arcs: [[[0, 1]]],
 };
 
 describe('premade feature', () => {
   describe('nation() factory function', () => {
-    it('should throw a type error if the passed topology does not contain a nations object', () => {
-      const topology: any = { type: 'Topology', objects: {}, arcs: [] };
+    it('should throw a type error if the passed topology does not contain a nation object', () => {
+      const topology: any = { type: 'Topology', objects: {states: {}}, arcs: [] };
+      expect(() => nation(topology)).toThrow(TypeError);
+    });
+
+    it('should throw an error if the topology object does not include a states object', () => {
+      const topology: any  = { type: 'Topology', objects: {nation: {}}, arcs: [] };
       expect(() => nation(topology)).toThrow(TypeError);
     });
   });
@@ -107,7 +116,16 @@ describe('premade feature', () => {
 
       expect(g.selectAll('g.stateMerge').size()).toEqual(1);
       expect(g.selectAll('g.stateWrapper').size()).toEqual(1);
-      expect(g.selectAll('path.state').size()).toEqual(1);
+      expect(g.selectAll('path.state').size()).toEqual(3);
+    });
+
+    it('should filter out paths with ids that don\'t match the provided scope, leaving items included if they are not in the all() scope', () => {
+      const s = states(topo, ['02']);
+      const g = select<HTMLElement, undefined>(document.body).append('svg').append('g');
+      s(g);
+
+      expect(g.selectAll('path.state').size()).toEqual(2);
+      expect((g.selectAll('path.state').datum() as any).id).toEqual('02');
     });
   });
 
@@ -128,7 +146,16 @@ describe('premade feature', () => {
 
       expect(g.selectAll('g.countyMerge').size()).toEqual(1);
       expect(g.selectAll('g.countyWrapper').size()).toEqual(1);
-      expect(g.selectAll('path.county').size()).toEqual(1);
+      expect(g.selectAll('path.county').size()).toEqual(3);
+    });
+
+    it('should filter out paths with ids that don\'t match the first two digits of the provided scope, leaving items included if they are not in the all() scope', () => {
+      const c = counties(topo, ['02']);
+      const g = select<HTMLElement, undefined>(document.body).append('svg').append('g');
+      c(g);
+
+      expect(g.selectAll('path.county').size()).toEqual(2);
+      expect((g.selectAll('path.county').datum() as any).id).toEqual('02123');
     });
   });
 });
