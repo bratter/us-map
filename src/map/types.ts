@@ -1,7 +1,7 @@
-import { Selection } from 'd3-selection';
+import { Selection, ArrayLike } from 'd3-selection';
 import { GeoPermissibleObjects } from 'd3-geo';
 
-export type AccessorFunction = (d?: any, i?: number) => any;
+export type AccessorFunction = (d?: any, i?: number, group?: ArrayLike<any>|any[]) => any;
 
 export type GeoSelection<Element extends SVGElement, GeoDatum extends GeoPermissibleObjects>
   = Selection<Element, GeoDatum[], any, any>;

@@ -97,6 +97,36 @@ describe('feature', () => {
       });
     });
 
+    it('should pass through d, i, and nodes arguments to the fill and stroke callbacks', () => {
+      const fillCallback = jest.fn().mockReturnValue('a');
+      const strokeCallback = jest.fn().mockReturnValue('b');
+      const f = feature()
+        .fill(fillCallback)
+        .stroke(strokeCallback);
+      const data = ['a', 'b'];
+
+      const pathNodes = g.datum<any>(data).call(f).selectAll('path').nodes();
+
+      expect(fillCallback).toHaveBeenCalledTimes(2);
+      expect(fillCallback).toHaveBeenNthCalledWith(1, 'a', 0, pathNodes);
+      expect(strokeCallback).toHaveBeenCalledTimes(2);
+      expect(strokeCallback).toHaveBeenNthCalledWith(2, 'b', 1, pathNodes);
+    });
+
+    it('should make `this` available as the current node in fill and stroke callbacks', () => {
+      let fillThis, strokeThis;
+      const fillCallback = function () { fillThis = this; };
+      const strokeCallback = function () { strokeThis = this; };
+      const f = feature()
+        .fill(fillCallback)
+        .stroke(strokeCallback);
+
+      const pathNode = g.datum([outlines[0]]).call(f).selectAll('path').node();
+
+      expect(fillThis).toBe(pathNode);
+      expect(strokeThis).toBe(pathNode);
+    });
+
     it('should create multiple wrappers and elements if multiple data is passed', () => {
       const data = [outlines, outlines];
       const parents = g.selectAll<SVGGElement, any>('g.parent').data(data).join('g').classed('parent', true);

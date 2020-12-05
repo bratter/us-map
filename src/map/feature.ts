@@ -121,12 +121,19 @@ export function feature(id = 'feature', projection?: UsMapProjection): Feature {
     
     wrapper
       .selectAll(`path.${id}`)
-      // Join on the id if it is present, the index otherwise using nullish coalescing 
       .data(d => d, (d: any, i) => d.id ?? i)
       // Calculate path on enter for performance, therefore path data cannot change on re-render
-      .join(enter => enter.append('path').classed(id, true).attr('d', path))
-      .attr('fill', (d, i) => fillColor(fill(d, i)))
-      .attr('stroke', (d, i) => strokeColor(stroke(d, i)));
+      .join((enter) => enter
+        .append('path')
+        .classed(id, true)
+        .attr('d', path)
+      )
+      .attr('fill', function (...args) {
+        return fillColor(fill.apply(this, args));
+      })
+      .attr('stroke', function (...args) {
+        return strokeColor(stroke.apply(this, args));
+      });
 
     return wrapper;
   }
