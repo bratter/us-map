@@ -73,7 +73,7 @@ export function zoomable(map: UsMap): Zoomable {
     // Create and replace the zoom transform each time because the sync value may change
     // overhead for doing so is minimal
     zoomBehavior.on(
-      'zoom.usmap',
+      'zoom.usMap',
       sync ? syncZoomHandler(selection) : unsyncedZoomHandler,
     );
 
@@ -114,7 +114,7 @@ function unsyncedZoomHandler({transform}) {
 
 function syncZoomHandler(selection: GeoSelection<any, any>) {
   return function syncZoomHandler({transform}) {
-    // Applying the transofrm to all usMap groups defines which elements are zoomed
+    // Applying the transform to all usMap groups defines which elements are zoomed
     selection.selectAll('g.usMap').attr('transform', transform);
     
     // Manually adjusting the zoom transform is required to avoid jumping on the next event

@@ -30,6 +30,7 @@ Alternatively, both UMD and ES6 module flavors are available when required, e.g.
 * [Zoomable](#zoomable)
 * [Premade Features](#premade-features)
 * [Features](#features)
+* [Behaviors](#behaviors)
 * [Projection](#projection)
 
 
@@ -120,6 +121,7 @@ The package provides functions to easily add a nation, state, and county feature
 2. Features can be filtered based on a passed *scope* to ensure that only the appropriate entities are rendered.
 3. Provides functions to create both *shapes* to get one path per state/county, and *meshes* to create a single path just with borders for non-interactive aestheic overlays (including a set of outlines for each inset). 
 4. For shapes, data bound to the container is automatically merged with the GeoJSON feature and is therefore available for fill color or other uses.
+5. Premade features inherit all the methods of the base [feature factory function](#features) documented below.
 
 To set up a feature, use the following:
 
@@ -199,7 +201,7 @@ UsMaps also supports features based on arbitrary GeoJSON. The feature API uses a
 Factory function for creating a feature for US Maps. This factory creates a render function that will render a collection of GeoJSON objects. The function is called with two arguments:
 
 * *id*: A required string with the type/id of the feature to be rendered. Used in class names to ensure unique selection.
-* *projection* (optional): If specified, uses the passed projection to render the GeoJSON objects. If not specified, assumes pre-projected GeoJSON. Generall you will want to pass the projection from the *usMap* instance to use the same projection.
+* *projection* (optional): If specified, uses the passed projection to render the GeoJSON objects. If not specified, assumes pre-projected GeoJSON. Generally you will want to pass the projection from the *usMap* instance to use the same projection.
 
 <a href="#_feature" name="_feature">#</a> <i>feature</i>(<i>selection</i>) [<>](https://github.com/bratter/us-map/blob/master/src/map/feature.ts "Source")
 
@@ -236,6 +238,22 @@ When *scale* is specified, sets the feature's stroke scale to the provided value
 If *width* is specified as  anumber in px, set the stroke width to be applied to the feature. If *width* is not specified, returns the current stroke width.
 
 Stroke width is applied to the group, not the individual path elements and is a fixed width. The scale stroke behavior can be used to adjust the strok width automatically when the map is zoomed.
+
+
+### Behaviors
+
+A selection of behaviors are available that provide additional interactivity to zoomable maps for common situations:
+
+- [**scaleWidth**](#scale_width): Adds stroke width scaling to a feature
+
+More to come&hellip;
+
+<a href="#scale_width" name="scale_width">#</a> <b>scaleWidth</b>(<i>feature</i>, <i>map</i>) [<>](https://github.com/bratter/us-map/blob/master/src/zoomable/scale-width.ts "Source")
+
+Mixin for adding stroke width scaling behavior to a feature. The returned feature is a new object, but shares state with the input feature. When applied to a selection, the resulting render function will automatically scale the stroke width of the feature's paths inversely with the zoom level, counteracting the effect of the zoom. As a result the stroke will be rendered at the same width irrespective of the zoom's scale. Them mixin should be called with the following arguments:
+
+* *feature*: The feature to scale stroke widths on.
+* *map*: A zoomable map instance. If the map is not zoomable, calling the mixed in feature is a no-op (will not error).
 
 
 ### Projection
