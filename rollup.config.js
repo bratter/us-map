@@ -5,7 +5,7 @@ import { terser } from 'rollup-plugin-terser';
 import * as meta from './package.json';
 
 const filename = meta.name.replace('@d3ts/', 'd3ts-');
-const d3Externals = Object.keys(meta.dependencies || {}).filter(k => /^d3-/.test(k));
+const d3Externals = Object.keys(meta.peerDependencies || {}).filter(k => /^d3-/.test(k));
 
 // Base config
 const config = {
@@ -20,6 +20,7 @@ const config = {
     indent: false,
     banner: `// ${meta.name} v${meta.version} (${meta.homepage}) Copyright ${new Date().getFullYear()} ${meta.author.name}`,
     // All d3 dependencies will be found on a single d3 external, so point all package keys to 'd3'
+    // Note that we do not add topojson-client as a global but bunlde it with the umd distros
     globals: Object.assign({}, ...d3Externals.map(key => ({ [key]: 'd3' }))),
   },
   plugins: [
@@ -42,7 +43,7 @@ export default [
     plugins: [
       ...config.plugins,
       terser({
-        output: { preamble:config.output.banner },
+        output: { preamble: config.output.banner },
       }),
     ],
   },
@@ -61,7 +62,7 @@ export default [
       }),
       sourceMaps(),
       terser({
-        output: { preamble:config.output.banner },
+        output: { preamble: config.output.banner },
       }),
     ],
   },

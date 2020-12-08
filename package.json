@@ -1,12 +1,12 @@
 {
   "name": "@d3ts/us-map",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Composable tooling for d3-based US Maps.",
   "keywords": [
     "d3",
     "d3ts",
     "maps",
-    "catography",
+    "cartography",
     "usa"
   ],
   "homepage": "https://github.com/bratter/us-map#readme",
